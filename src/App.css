@@ -50,15 +50,15 @@ body, html {
 }
 
 /* Set the colors for each tab */
-#Home {
+#Accounts {
   --tab-color: red;
 }
 
-#News {
+#Holdings {
   --tab-color: green;
 }
 
-#Contact {
+#Ledger {
   --tab-color: blue;
 }
 
@@ -114,42 +114,3 @@ body, html {
   display: block;
   background-color: var(--tab-color, #555);
 }
-
-
-/*
-#Home {
-  background-color: red;
-  color: white;
-}
-#News {
-  background-color: green;
-  color: white;
-}
-#Contact {
-  background-color: blue;
-  color: white;
-}
-#About {
-  background-color: orange;
-  color: black;
-}
-
-#Home.active {
-  background-color: red;
-  color: white;
-}
-
-#News.active {
-  background-color: green;
-  color: white;
-}
-
-#Contact.active {
-  background-color: blue;
-  color: white;
-}
-
-#About.active {
-  background-color: orange;
-  color: black;
-} */

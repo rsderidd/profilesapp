@@ -53,35 +53,44 @@ export default function App() {
       width="70%"
       margin="0 auto"
     >
+        {/* Heading */}
+        <Heading level={1}>GIC Tracker</Heading>
+
       {/* Tab Buttons */}
-      <button id="Home"
-        className={`tablink ${activeTab === 'Home' ? 'active' : ''}`}
-        onClick={() => openPage('Home')}
+      <Flex
+        className="tab-container"
+        justifyContent="space-evenly"  // Distribute buttons evenly
+        alignItems="center"
+        width="100%"  // Ensure it spans the full width
       >
-        Home
-      </button>
-      <button id="News"
-        className={`tablink ${activeTab === 'News' ? 'active' : ''}`}
-        onClick={() => openPage('News')}
+      <button id="Accounts"
+        className={`tablink ${activeTab === 'Accounts' ? 'active' : ''}`}
+        onClick={() => openPage('Accounts')}
       >
-        News
+        Accounts
       </button>
-      <button id="Contact"
-        className={`tablink ${activeTab === 'Contact' ? 'active' : ''}`}
-        onClick={() => openPage('Contact')}
+      <button id="Holdings"
+        className={`tablink ${activeTab === 'Holdings' ? 'active' : ''}`}
+        onClick={() => openPage('Holdings')}
       >
-        Contact
+        Holdings
       </button>
+      <button id="Ledger"
+        className={`tablink ${activeTab === 'Ledger' ? 'active' : ''}`}
+        onClick={() => openPage('Ledger')}
+      >
+        Ledger
+      </button>
+
       <button id="About"
         className={`tablink ${activeTab === 'About' ? 'active' : ''}`}
         onClick={() => openPage('About')}
       >
         About
       </button>
+      </Flex>
 
-      {/* Heading */}
-      <Heading level={1}>My Profile</Heading>
-
+    
       <Divider />
 
       {/* Grid of user profiles */}
@@ -112,18 +121,18 @@ export default function App() {
       </Grid>
 
       {/* Tab Content */}
-      <div id="Home" className={`tabcontent ${activeTab === 'Home' ? 'active' : ''}`}>
-        <h3>Home</h3>
+      <div id="Accounts" className={`tabcontent ${activeTab === 'Accounts' ? 'active' : ''}`}>
+        <h3>Accounts</h3>
         <p>Home is where the heart is..</p>
       </div>
     
-      <div  id="News" className={`tabcontent ${activeTab === 'News' ? 'active' : ''}`}>
-        <h3>News</h3>
+      <div  id="Holdings" className={`tabcontent ${activeTab === 'Holdings' ? 'active' : ''}`}>
+        <h3>Holdings</h3>
         <p>Some news this fine day!</p>
       </div>
     
-      <div id="Contact" className={`tabcontent ${activeTab === 'Contact' ? 'active' : ''}`}>
-        <h3>Contact</h3>
+      <div id="Ledger" className={`tabcontent ${activeTab === 'Ledger' ? 'active' : ''}`}>
+        <h3>Ledger</h3>
         <p>Get in touch, or swing by for a cup of coffee.</p>
       </div>
     
