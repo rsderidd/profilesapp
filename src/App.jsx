@@ -35,14 +35,13 @@ export default function App() {
     const { data: profiles } = await client.models.UserProfile.list();
     setUserProfiles(profiles);
   }
-  
-  const [tabColor, setTabColor] = useState("");
 
+ 
   // Function to change the active tab
-  const openPage = (pageName, color) => {
+  const openPage = (pageName) => {
     setActiveTab(pageName);
     console.log('Switching to tab:', pageName); // Debugging line
-    setTabColor(color); 
+  
   };
 
   return (
@@ -55,27 +54,27 @@ export default function App() {
       margin="0 auto"
     >
       {/* Tab Buttons */}
-      <button
+      <button id="Home"
         className={`tablink ${activeTab === 'Home' ? 'active' : ''}`}
-        onClick={() => openPage('Home', 'red')}
+        onClick={() => openPage('Home')}
       >
         Home
       </button>
-      <button
+      <button id="News"
         className={`tablink ${activeTab === 'News' ? 'active' : ''}`}
-        onClick={() => openPage('News', 'green')}
+        onClick={() => openPage('News')}
       >
         News
       </button>
-      <button
+      <button id="Contact"
         className={`tablink ${activeTab === 'Contact' ? 'active' : ''}`}
-        onClick={() => openPage('Contact', 'blue')}
+        onClick={() => openPage('Contact')}
       >
         Contact
       </button>
-      <button
+      <button id="About"
         className={`tablink ${activeTab === 'About' ? 'active' : ''}`}
-        onClick={() => openPage('About', 'orange')}
+        onClick={() => openPage('About')}
       >
         About
       </button>
@@ -113,26 +112,22 @@ export default function App() {
       </Grid>
 
       {/* Tab Content */}
-      <div className={`tabcontent ${activeTab === 'Home' ? 'active' : ''}`}
-      style={{ backgroundColor: activeTab === 'Home' ? tabColor : '' }}>
+      <div id="Home" className={`tabcontent ${activeTab === 'Home' ? 'active' : ''}`}>
         <h3>Home</h3>
         <p>Home is where the heart is..</p>
       </div>
     
-      <div className={`tabcontent ${activeTab === 'News' ? 'active' : ''}`}
-      style={{ backgroundColor: activeTab === 'News' ? tabColor : '' }}>
+      <div  id="News" className={`tabcontent ${activeTab === 'News' ? 'active' : ''}`}>
         <h3>News</h3>
         <p>Some news this fine day!</p>
       </div>
     
-      <div className={`tabcontent ${activeTab === 'Contact' ? 'active' : ''}`}
-      style={{ backgroundColor: activeTab === 'Contact' ? tabColor : '' }}>
+      <div id="Contact" className={`tabcontent ${activeTab === 'Contact' ? 'active' : ''}`}>
         <h3>Contact</h3>
         <p>Get in touch, or swing by for a cup of coffee.</p>
       </div>
     
-      <div className={`tabcontent ${activeTab === 'About' ? 'active' : ''}`}
-      style={{ backgroundColor: activeTab === 'About' ? tabColor : '' }}>
+      <div id="About" className={`tabcontent ${activeTab === 'About' ? 'active' : ''}`}>
         <h3>About</h3>
         <p>Who we are and what we do.</p>
       </div>
