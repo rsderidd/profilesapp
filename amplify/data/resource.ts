@@ -6,8 +6,7 @@ const schema = a
     UserProfile: a
       .model({
         email: a.string(),
-        profileOwner: a.string(),
-        test: a.string()
+        profileOwner: a.string()
       })
       .authorization((allow) => [
         allow.ownerDefinedIn("profileOwner"),

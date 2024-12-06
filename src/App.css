@@ -40,3 +40,94 @@
 .read-the-docs {
   color: #888;
 }
+
+
+/* Set height of body and the document to 100% to enable "full page tabs" */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: Arial;
+}
+
+/* General Tab Button Styles */
+.tablink {
+  background-color: #db1e1e; /* Default background color */
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 25%;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Hover Effect */
+.tablink:hover {
+  background-color: #b31b1b; /* Slightly darker red on hover */
+}
+
+/* Active Tab Button */
+.tablink.active {
+  background-color: #1104ca; /* Change background color for active tab */
+}
+
+/* Make tab buttons responsive */
+@media (max-width: 768px) {
+  .tablink {
+      width: 100%;
+  }
+}
+
+/* Hide all tab content by default */
+.tabcontent {
+  display: none;
+  min-height: 100px;
+  padding: 20px;
+  box-sizing: border-box;
+  color: black; /* Ensure text is visible */
+}
+
+/* Show the active tab content */
+.tabcontent.active {
+  display: block;
+}
+
+#Home {
+  background-color: red;
+  color: white;
+}
+#News {
+  background-color: green;
+  color: white;
+}
+#Contact {
+  background-color: blue;
+  color: white;
+}
+#About {
+  background-color: orange;
+  color: black;
+}
+
+/* Each Tab's Background Color */
+#Home.active {
+  background-color: red;
+  color: white;
+}
+
+#News.active {
+  background-color: green;
+  color: white;
+}
+
+#Contact.active {
+  background-color: blue;
+  color: white;
+}
+
+#About.active {
+  background-color: orange;
+  color: black;
+}
