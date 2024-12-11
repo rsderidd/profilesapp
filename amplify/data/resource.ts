@@ -18,10 +18,7 @@ const schema = a
         birthdate: a.string(),
         min_withdrawal_date: a.string(),
         starting_balance: a.float()
-      })
-      .authorization((allow) => [
-        allow.ownerDefinedIn("profileOwner"),
-      ]),
+      }).authorization((allow) => [allow.authenticated()]),
     Holdings: a
       .model({
         account_id: a.string(),
@@ -31,10 +28,7 @@ const schema = a
         maturity_date: a.string(),
         rate: a.float(),
         amount_at_maturity: a.float()
-      })
-      .authorization((allow) => [
-        allow.ownerDefinedIn("profileOwner"),
-      ]),
+      }).authorization((allow) => [allow.authenticated()]),
     Transactions: a
       .model({
         account_id: a.string(),
@@ -42,13 +36,9 @@ const schema = a
         xtn_date: a.string(),
         amount: a.float(),
         holding_id: a.string()
-      })
-      .authorization((allow) => [
-        allow.ownerDefinedIn("profileOwner"),
-      ]),
-        
-  })
-  .authorization((allow) => [allow.resource(postConfirmation)]);
+      }).authorization((allow) => [allow.authenticated()]),  
+  }).authorization((allow) => [allow.resource(postConfirmation)]);
+  // .authorization((allow) => [allow.authenticated()]);
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
