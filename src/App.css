@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  max-width: 90%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -112,5 +112,6 @@ body, html {
 /* Show the active tab content */
 .tabcontent.active {
   display: block;
-  background-color: var(--tab-color, #555);
+  /* background-color: var(--tab-color, #555); */
+  border: 2px solid var(--tab-color, #555);
 }

@@ -14,8 +14,9 @@ import "@aws-amplify/ui-react/styles.css";
 import { generateClient } from "aws-amplify/data";
 import outputs from "../amplify_outputs.json";
 import './App.css';
-// import { API } from "aws-amplify";
-import { updateAccounts } from "../amplify/auth/post-confirmation/graphql/mutations";
+import { createAccounts, createHoldings, deleteAccounts, deleteHoldings, updateAccounts, updateHoldings } from "../amplify/auth/post-confirmation/graphql/mutations"; 
+import { listAccounts, listHoldings } from "../amplify/auth/post-confirmation/graphql/queries"; 
+
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
  */
@@ -58,8 +59,23 @@ export default function App() {
   });
   const [editingAccount, setEditingAccount] = useState(null);
 
+  // Holdings State 
+  const [holdings, setHoldings] = useState([]);
+  const [newHolding, setNewHolding] = useState({
+    account_id: "",
+    name: "",
+    purchase_date: "",
+    amount_paid: "",
+    maturity_date: "",
+    rate: "",
+    amount_at_maturity: "",
+  });
+  const [editingHolding, setEditingHolding] = useState(null);
+  const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
+
   useEffect(() => {
     fetchAccounts();
+    fetchHoldings();
   }, []);
 
   const fetchAccounts = async () => {
@@ -68,6 +84,15 @@ export default function App() {
       setAccounts(data);
     } catch (err) {
       console.error("Error fetching accounts:", err);
+    }
+  };
+
+  const fetchHoldings = async () => { 
+    try {
+      const {data} = await  client.models.Holdings.list(); // Amplify.API.graphql({ query: listHoldings });
+      setHoldings(data);
+    } catch (err) {
+      console.error("Error fetching holdings:", err);
     }
   };
 
@@ -88,6 +113,33 @@ export default function App() {
       });
     } catch (err) {
       console.error("Error adding account:", err);
+    }
+  };
+
+  const addHolding = async () => { // HOLDINGS: Added
+    try {
+      const createdHolding = await client.models.Holdings.create({
+        account_id: newHolding.account_id,
+        name: newHolding.name,
+        purchase_date: newHolding.purchase_date,
+        amount_paid: parseFloat(newHolding.amount_paid),
+        maturity_date: newHolding.maturity_date,
+        rate: parseFloat(newHolding.rate),
+        amount_at_maturity: parseFloat(newHolding.amount_at_maturity),
+    });
+      setHoldings((prevHoldings) => [...prevHoldings, createdHolding]);
+      fetchHoldings();
+      setNewHolding({
+        account_id: "",
+        name: "",
+        purchase_date: "",
+        amount_paid: "",
+        maturity_date: "",
+        rate: "",
+        amount_at_maturity: "",
+      });
+    } catch (err) {
+      console.error("Error adding holding:", err);
     }
   };
 
@@ -115,6 +167,15 @@ export default function App() {
       });
     } catch (err) {
       console.error("Error deleting account:", err);
+    }
+  };
+
+  const deleteHolding = async (id) => { // HOLDINGS: Added
+    try {
+      client.models.Holdings.delete({id});
+      setHoldings((prevHoldings) => prevHoldings.filter((holding) => holding.id !== id));
+    } catch (err) {
+      console.error("Error deleting holding:", err);
     }
   };
 
@@ -167,13 +228,48 @@ export default function App() {
   };
 
 
+  const updateHolding = async () => {
+    setIsUpdatingHolding(true);
+    try {
+      const updatedData = {
+        id: editingHolding.id,
+        account_id: editingHolding.account_id,
+        name: editingHolding.name,
+        purchase_date: editingHolding.purchase_date,
+        amount_paid: parseFloat(editingHolding.amount_paid),
+        maturity_date: editingHolding.maturity_date,
+        rate: parseFloat(editingHolding.rate),
+        amount_at_maturity: parseFloat(editingHolding.amount_at_maturity),  
+      };
+
+      const result = await client.graphql({
+        query: updateHoldings,
+        variables: { input: updatedData },
+      });
+
+      setHoldings((prevHoldings) =>
+        prevHoldings.map((holding) =>
+          holding.id === result.data.updateHoldings.id
+            ? result.data.updateHoldings
+            : holding
+        )
+      );
+      setEditingHolding(null);
+    } catch (err) {
+      console.error("Error updating holding:", err);
+      alert("Failed to update the holding. Please try again later.");
+    } finally {
+      setIsUpdatingHolding(false);
+    }
+  };
+
   return (
     <Flex
       className="App"
       justifyContent="center"
       alignItems="center"
       direction="column"
-      width="70%"
+      width="100%"
       margin="0 auto"
     >
       {/* Heading */}
@@ -182,7 +278,7 @@ export default function App() {
       {/* user info */}       
       <Flex
       className="tab-container"
-      justifyContent="space-evenly"  // Distribute buttons evenly
+      justifyContent="space-evenly"  // Distribute Buttons evenly
       alignItems="center"
       width="100%"  // Ensure it spans the full width
       >
@@ -208,35 +304,35 @@ export default function App() {
       {/* Tab Buttons */}
       <Flex
         className="tab-container"
-        justifyContent="space-evenly"  // Distribute buttons evenly
+        justifyContent="space-evenly"  // Distribute Buttons evenly
         alignItems="center"
         width="100%"  // Ensure it spans the full width
       >
-        <button id="Accounts"
+        <Button id="Accounts"
           className={`tablink ${activeTab === 'Accounts' ? 'active' : ''}`}
           onClick={() => openPage('Accounts')}
         >
           Accounts
-        </button>
-        <button id="Holdings"
+        </Button>
+        <Button id="Holdings"
           className={`tablink ${activeTab === 'Holdings' ? 'active' : ''}`}
           onClick={() => openPage('Holdings')}
         >
           Holdings
-        </button>
-        <button id="Ledger"
+        </Button>
+        <Button id="Ledger"
           className={`tablink ${activeTab === 'Ledger' ? 'active' : ''}`}
           onClick={() => openPage('Ledger')}
         >
           Ledger
-        </button>
+        </Button>
 
-        <button id="About"
+        <Button id="About"
           className={`tablink ${activeTab === 'About' ? 'active' : ''}`}
           onClick={() => openPage('About')}
         >
           About
-        </button>
+        </Button>
       </Flex>
 
       
@@ -246,22 +342,24 @@ export default function App() {
       <div id="Accounts" className={`tabcontent ${activeTab === 'Accounts' ? 'active' : ''}`}>
           <Flex key="acnts" direction="column" gap="1rem">
             <Heading level={2}>Accounts</Heading>
-            <Grid key="hdr" templateColumns="repeat(5, 1fr)" gap="1rem">
+            <Grid key="hdr" templateColumns="repeat(6, 1fr)" gap="1rem" border="1px solid #000">
               <Heading key="header-name" level={4}>Name</Heading>
               <Heading key="header-type" level={4}>Type</Heading>
               <Heading key="header-birthdate" level={4}>Birthdate</Heading>
               <Heading key="header-min-withdrawal" level={4}>Min Withdrawal Date</Heading>
               <Heading key="header-balance" level={4}>Starting Balance</Heading>
+              <Heading key="header-buttons" level={4}>Actions</Heading>
             </Grid>
             {accounts.map((account) => (
-              <Grid key={account.id} templateColumns="repeat(5, 1fr)" gap="1rem">
-                <span>{account.name}</span>
-                <span>{account.type}</span>
-                <span>{account.birthdate}</span>
-                <span>{account.min_withdrawal_date}</span>
-                <span>{account.starting_balance}</span>
-                <Button onClick={() => deleteAccount(account.id)}>Delete</Button>
+              <Grid key={account.id} templateColumns="repeat(6, 1fr)" gap="1rem" >
+                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.name}</span>
+                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.type}</span>
+                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.birthdate}</span>
+                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.min_withdrawal_date}</span>
+                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.starting_balance}</span>
+                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}><Button onClick={() => deleteAccount(account.id)}>Delete</Button>
                 <Button onClick={() => setEditingAccount(account)}>Edit</Button>
+                </span>
               </Grid>
             ))}
 
@@ -367,8 +465,155 @@ export default function App() {
       </div>
     
       <div  id="Holdings" className={`tabcontent ${activeTab === 'Holdings' ? 'active' : ''}`}>
-        <h3>Holdings</h3>
-        <p>Some news this fine day!</p>
+        <Flex key="hld" direction="column" gap="1rem">
+          <Heading level={2}>Holdings</Heading>
+          <Grid key="hdr" templateColumns="repeat(8, 1fr)" gap="1rem">
+            <Heading key="header-acnt" level={4}>Account ID</Heading>
+            <Heading key="header-name" level={4}>Name</Heading>
+            <Heading key="header-pdate" level={4}>Purchase Date</Heading>
+            <Heading key="header-paid" level={4}>Amount Paid</Heading>
+            <Heading key="header-mdate" level={4}>Maturity Date</Heading>
+            <Heading key="header-rate" level={4}>Rate</Heading>
+            <Heading key="header-amt" level={4}>Amount at Maturity</Heading>
+            <Heading key="header-buttons" level={4}>Actions</Heading>
+          </Grid>
+          {holdings.map((holding) => (
+            <Grid key={holding.id} templateColumns="repeat(8, 1fr)" gap="1rem">
+              <span>{holding.account_id}</span>
+              <span>{holding.name}</span>
+              <span>{holding.purchase_date}</span>
+              <span>{holding.amount_paid}</span>
+              <span>{holding.maturity_date}</span>
+              <span>{holding.rate}</span>
+              <span>{holding.amount_at_maturity}</span>
+              <span><Button onClick={() => setEditingHolding(holding)}>Edit</Button>
+              <Button onClick={() => deleteHolding(holding.id)}>Delete</Button>
+              </span>
+            </Grid>
+          ))}
+
+          <Divider />
+
+          <Flex direction="column" gap="1rem">
+            <Heading level={3}>
+              {editingHolding ? "Edit Holding" : "Add New Holding"}
+            </Heading>
+            <TextField
+              label="Account ID"
+              value={editingHolding ? editingHolding.account_id : newHolding.account_id}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      account_id: e.target.value,
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      account_id: e.target.value,
+                    })
+              }
+            />
+            <TextField
+              label="Name"
+              value={editingHolding ? editingHolding.name : newHolding.name}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      name: e.target.value,
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      name: e.target.value,
+                    })
+              }
+            />
+            <TextField
+              label="Purchase Date"
+              value={editingHolding ? editingHolding.purchase_date : newHolding.purchase_date}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      purchase_date: e.target.value,
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      purchase_date: e.target.value,
+                    })
+              }
+            />
+            <TextField
+              label="Amount Paid"
+              type="number"
+              value={editingHolding ? editingHolding.amount_paid : newHolding.amount_paid}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      amount_paid: parseFloat(e.target.value),
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      amount_paid: parseFloat(e.target.value),
+                    })
+              }
+            />
+            <TextField
+              label="Maturity Date"
+              value={editingHolding ? editingHolding.maturity_date : newHolding.maturity_date}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      maturity_date: e.target.value,
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      maturity_date: e.target.value,
+                    })
+              }
+            />
+            <TextField
+              label="Rate"
+              type="number"
+              value={editingHolding ? editingHolding.rate : newHolding.rate}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      rate: parseFloat(e.target.value),
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      rate: parseFloat(e.target.value),
+                    })
+              }
+            />
+            <TextField
+              label="Amount at Maturity"
+              type="number"
+              value={editingHolding ? editingHolding.amount_at_maturity : newHolding.amount_at_maturity}
+              onChange={(e) =>
+                editingHolding
+                  ? setEditingHolding({
+                      ...editingHolding,
+                      amount_at_maturity: parseFloat(e.target.value),
+                    })
+                  : setNewHolding({
+                      ...newHolding,
+                      amount_at_maturity: parseFloat(e.target.value),
+                    })
+              }
+            />
+            <Button onClick={editingHolding ? updateHolding : addHolding}>
+              {editingHolding ? "Save Changes" : "Add Holding"}
+            </Button>
+            {editingHolding && (
+              <Button onClick={() => setEditingHolding(null)}>Cancel</Button>
+            )}
+          </Flex>
+        </Flex>
       </div>
     
       <div id="Ledger" className={`tabcontent ${activeTab === 'Ledger' ? 'active' : ''}`}>
