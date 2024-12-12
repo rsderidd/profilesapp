@@ -115,3 +115,70 @@ body, html {
   /* background-color: var(--tab-color, #555); */
   border: 2px solid var(--tab-color, #555);
 }
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Arial', sans-serif;
+}
+
+table thead th {
+  background-color: var(--tab-color); /* Use base color for headers */
+  color: white;
+
+}
+
+table tbody td {
+  color: black;
+}
+th, td {
+  padding: 0.5rem;
+  text-align: center;
+}
+
+th {
+  font-weight: bold; /* Optional: to emphasize header */
+}
+
+table tbody tr td:first-child,
+table thead tr th:first-child {
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+}
+
+table tbody tr td:last-child,
+table thead tr th:last-child {
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+}
+
+table tbody tr:nth-child(odd) td {
+  background-color: color-mix(in srgb, var(--tab-color) 60%, white 40%);
+}
+
+table tbody tr:nth-child(even) td {
+  background-color: color-mix(in srgb, var(--tab-color) 50%, white 50%);
+}
+
+table tbody tr:hover td {
+  background-color: color-mix(in srgb, var(--tab-color) 70%, black 30%);
+}
+
+table tbody td {
+  position: relative; /* Ensure pseudo-elements align properly */
+}
+
+/* Add a right border to all cells except the last one in each row */
+table tbody td:not(:last-child) {
+  border-right: 1px solid color-mix(in srgb, var(--tab-color) 70%, black 30%);
+}
+
+/* Add definition to header columns */
+table thead th:not(:last-child) {
+  border-right: 1px solid color-mix(in srgb, var(--tab-color) 60%, black 40%);
+}
+
+table tbody tr td {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

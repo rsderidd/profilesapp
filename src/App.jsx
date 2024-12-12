@@ -342,27 +342,32 @@ export default function App() {
       <div id="Accounts" className={`tabcontent ${activeTab === 'Accounts' ? 'active' : ''}`}>
           <Flex key="acnts" direction="column" gap="1rem">
             <Heading level={2}>Accounts</Heading>
-            <Grid key="hdr" templateColumns="repeat(6, 1fr)" gap="1rem" border="1px solid #000">
-              <Heading key="header-name" level={4}>Name</Heading>
-              <Heading key="header-type" level={4}>Type</Heading>
-              <Heading key="header-birthdate" level={4}>Birthdate</Heading>
-              <Heading key="header-min-withdrawal" level={4}>Min Withdrawal Date</Heading>
-              <Heading key="header-balance" level={4}>Starting Balance</Heading>
-              <Heading key="header-buttons" level={4}>Actions</Heading>
-            </Grid>
+            <table>
+            <thead>
+              <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Birthdate</th>
+              <th>Min Withdrawal Date</th>
+              <th>Starting Balance</th>
+              <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
             {accounts.map((account) => (
-              <Grid key={account.id} templateColumns="repeat(6, 1fr)" gap="1rem" >
-                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.name}</span>
-                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.type}</span>
-                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.birthdate}</span>
-                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.min_withdrawal_date}</span>
-                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}>{account.starting_balance}</span>
-                <span style={{ border: '1px solid #000', padding: '0.5rem', textAlign: 'center' }}><Button onClick={() => deleteAccount(account.id)}>Delete</Button>
+              <tr key={account.id}>
+                <td>{account.name}</td>
+                <td>{account.type}</td>
+                <td>{account.birthdate}</td>
+                <td>{account.min_withdrawal_date}</td>
+                <td>{account.starting_balance}</td>
+                <td><Button onClick={() => deleteAccount(account.id)}>Delete</Button>
                 <Button onClick={() => setEditingAccount(account)}>Edit</Button>
-                </span>
-              </Grid>
+                </td>
+                </tr>
             ))}
-
+            </tbody>
+            </table>
             {editingAccount ? (
               <Flex direction="column" gap="1rem">
                 <Heading level={3}>Edit Account</Heading>
@@ -467,31 +472,38 @@ export default function App() {
       <div  id="Holdings" className={`tabcontent ${activeTab === 'Holdings' ? 'active' : ''}`}>
         <Flex key="hld" direction="column" gap="1rem">
           <Heading level={2}>Holdings</Heading>
-          <Grid key="hdr" templateColumns="repeat(8, 1fr)" gap="1rem">
-            <Heading key="header-acnt" level={4}>Account ID</Heading>
-            <Heading key="header-name" level={4}>Name</Heading>
-            <Heading key="header-pdate" level={4}>Purchase Date</Heading>
-            <Heading key="header-paid" level={4}>Amount Paid</Heading>
-            <Heading key="header-mdate" level={4}>Maturity Date</Heading>
-            <Heading key="header-rate" level={4}>Rate</Heading>
-            <Heading key="header-amt" level={4}>Amount at Maturity</Heading>
-            <Heading key="header-buttons" level={4}>Actions</Heading>
-          </Grid>
+          <table>
+            <thead>
+              <tr>
+              <th>Account ID</th>
+              <th>Name</th>
+              <th>Purchase Date</th>
+              <th>Amount Paid</th>
+              <th>Maturity Date</th>
+              <th>Rate</th>
+              <th>Amount at Maturity</th>
+              <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+
           {holdings.map((holding) => (
-            <Grid key={holding.id} templateColumns="repeat(8, 1fr)" gap="1rem">
-              <span>{holding.account_id}</span>
-              <span>{holding.name}</span>
-              <span>{holding.purchase_date}</span>
-              <span>{holding.amount_paid}</span>
-              <span>{holding.maturity_date}</span>
-              <span>{holding.rate}</span>
-              <span>{holding.amount_at_maturity}</span>
-              <span><Button onClick={() => setEditingHolding(holding)}>Edit</Button>
+            <tr key={holding.id}>
+              <td>{holding.account_id}</td>
+              <td>{holding.name}</td>
+              <td>{holding.purchase_date}</td>
+              <td>{holding.amount_paid}</td>
+              <td>{holding.maturity_date}</td>
+              <td>{holding.rate}</td>
+              <td>{holding.amount_at_maturity}</td>
+              <td><Button onClick={() => setEditingHolding(holding)}>Edit</Button>
               <Button onClick={() => deleteHolding(holding.id)}>Delete</Button>
-              </span>
-            </Grid>
+              </td>
+            </tr>
           ))}
 
+            </tbody>
+          </table>
           <Divider />
 
           <Flex direction="column" gap="1rem">
