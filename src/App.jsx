@@ -90,6 +90,7 @@ export default function App() {
   const fetchHoldings = async () => { 
     try {
       const {data} = await  client.models.Holdings.list(); // Amplify.API.graphql({ query: listHoldings });
+      setSelectedAccount(null)
       setHoldings(data);
     } catch (err) {
       console.error("Error fetching holdings:", err);
@@ -227,7 +228,23 @@ export default function App() {
     }
   };
 
+  const [selectedAccount, setSelectedAccount] = useState(null);
 
+  const handleViewHoldings = async (accountId, accountName) => {
+    try {
+      setSelectedAccount({ id: accountId, name: accountName });
+      setActiveTab("Holdings");
+  
+      // Filter holdings by account ID
+      const { data } = await client.models.Holdings.list({
+        filter: { account_id: { eq: accountId } },
+      });
+      setHoldings(data);
+    } catch (err) {
+      console.error("Error filtering holdings:", err);
+    }
+  };
+  
   const updateHolding = async () => {
     setIsUpdatingHolding(true);
     try {
@@ -363,6 +380,7 @@ export default function App() {
                 <td>{account.starting_balance}</td>
                 <td><Button onClick={() => deleteAccount(account.id)}>Delete</Button>
                 <Button onClick={() => setEditingAccount(account)}>Edit</Button>
+                <Button onClick={() => handleViewHoldings(account.id, account.name)}>View Holdings</Button>
                 </td>
                 </tr>
             ))}
@@ -472,6 +490,12 @@ export default function App() {
       <div  id="Holdings" className={`tabcontent ${activeTab === 'Holdings' ? 'active' : ''}`}>
         <Flex key="hld" direction="column" gap="1rem">
           <Heading level={2}>Holdings</Heading>
+          {selectedAccount && (
+            <Heading level={3}>
+              {selectedAccount ? `Holdings for ${selectedAccount.name} ${selectedAccount.id}` : "All Holdings"} 
+              <Button onClick={fetchHoldings}>View All Holdings</Button>
+            </Heading>
+          )}
           <table>
             <thead>
               <tr>
