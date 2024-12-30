@@ -7,6 +7,7 @@ import {
   Grid,
   TextField,
   Divider,
+  SelectField,
 } from "@aws-amplify/ui-react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
@@ -232,13 +233,22 @@ export default function App() {
 
   const handleViewHoldings = async (accountId, accountName) => {
     try {
-      setSelectedAccount({ id: accountId, name: accountName });
+      if (accountId === 'all' || accountId === null) {
+        setSelectedAccount(null);  // You can also reset it to { id: null, name: "All Holdings" } if you prefer
+      } else {
+        setSelectedAccount({ id: accountId, name: accountName });
+      }
       setActiveTab("Holdings");
   
+      const filter = accountId && accountId !== 'all' 
+      ? { account_id: { eq: accountId } } 
+      : {};  // No filter for "All Holdings"
+
       // Filter holdings by account ID
       const { data } = await client.models.Holdings.list({
-        filter: { account_id: { eq: accountId } },
+        filter,
       });
+      
       setHoldings(data);
     } catch (err) {
       console.error("Error filtering holdings:", err);
@@ -490,12 +500,29 @@ export default function App() {
       <div  id="Holdings" className={`tabcontent ${activeTab === 'Holdings' ? 'active' : ''}`}>
         <Flex key="hld" direction="column" gap="1rem">
           <Heading level={2}>Holdings</Heading>
+          
+          {/** 
           {selectedAccount && (
             <Heading level={3}>
               {selectedAccount ? `Holdings for ${selectedAccount.name} ${selectedAccount.id}` : "All Holdings"} 
               <Button onClick={fetchHoldings}>View All Holdings</Button>
             </Heading>
           )}
+          **/}
+
+            <SelectField
+              label="Select Account"
+              value={selectedAccount ? selectedAccount.id : 'all'}
+              onChange={(e) => handleViewHoldings(e.target.value)}
+            >
+              <option value="all">All Holdings</option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </SelectField>
+
           <table>
             <thead>
               <tr>
