@@ -135,7 +135,11 @@ export default function App() {
         amount_at_maturity: parseFloat(newHolding.amount_at_maturity),
     });
       setHoldings((prevHoldings) => [...prevHoldings, createdHolding]);
-      fetchHoldings();
+      if (selectedAccount) {
+        await handleViewHoldings(selectedAccount.id, selectedAccount.name);
+      } else {
+         fetchHoldings();
+      }
       setNewHolding({
         account_id: "",
         name: "",
