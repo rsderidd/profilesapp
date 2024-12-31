@@ -119,6 +119,11 @@ export default function App() {
   };
 
   const addHolding = async () => { // HOLDINGS: Added
+    if (!newHolding.account_id) {
+      console.error("Select an Account!");
+      return;
+    }
+    
     try {
       const createdHolding = await client.models.Holdings.create({
         account_id: newHolding.account_id,
@@ -248,7 +253,7 @@ export default function App() {
       const { data } = await client.models.Holdings.list({
         filter,
       });
-      
+
       setHoldings(data);
     } catch (err) {
       console.error("Error filtering holdings:", err);
@@ -513,7 +518,11 @@ export default function App() {
             <SelectField
               label="Select Account"
               value={selectedAccount ? selectedAccount.id : 'all'}
-              onChange={(e) => handleViewHoldings(e.target.value)}
+              onChange={(e) => {
+                const selectedAccountId = e.target.value;
+                const selectedAccountName = selectedAccountId === 'all' ? null : accounts.find(account => account.id === selectedAccountId)?.name;
+                handleViewHoldings(selectedAccountId, selectedAccountName);
+              }}
             >
               <option value="all">All Holdings</option>
               {accounts.map((account) => (
@@ -525,7 +534,7 @@ export default function App() {
 
           <table>
             <thead>
-              <tr>
+              <tr key="hdr">
               <th>Account ID</th>
               <th>Name</th>
               <th>Purchase Date</th>
@@ -557,25 +566,61 @@ export default function App() {
           </table>
           <Divider />
 
-          <Flex direction="column" gap="1rem">
+          <Flex key="edthld" direction="column" gap="1rem">
             <Heading level={3}>
               {editingHolding ? "Edit Holding" : "Add New Holding"}
             </Heading>
-            <TextField
-              label="Account ID"
-              value={editingHolding ? editingHolding.account_id : newHolding.account_id}
-              onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      account_id: e.target.value,
-                    })
-                  : setNewHolding({
+              
+              {/* Account ID Section */}
+              {selectedAccount && selectedAccount.id === 'all' ? (
+                // If "All Holdings" is selected, show a dropdown for selecting an account
+                <SelectField
+                  label="Select Account for holding"
+                  value={newHolding.account_id}
+                  onChange={(e) =>
+                    setNewHolding({
                       ...newHolding,
                       account_id: e.target.value,
                     })
-              }
-            />
+                  }
+                >
+                  <option value="" disabled>Select Account here</option>
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} {/* Display account name in the dropdown */}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : (
+                // If an account is selected, display the account name 
+                selectedAccount && selectedAccount.name ? (
+                  <div>
+                  <label>Account</label>
+                  <div>{selectedAccount.name}</div> 
+                  </div>
+                ) : (
+                  // If no account is selected, show the dropdown for selecting an account
+                  <SelectField
+                    label="Select Account"
+                    value={newHolding.account_id}
+                    onChange={(e) =>
+                      setNewHolding({
+                        ...newHolding,
+                        account_id: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="" disabled>Select Account</option>
+                    {accounts.map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </SelectField>
+                )
+              )}
+
+
             <TextField
               label="Name"
               value={editingHolding ? editingHolding.name : newHolding.name}
