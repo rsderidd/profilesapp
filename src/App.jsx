@@ -572,32 +572,19 @@ export default function App() {
             </Heading>
               
               {/* Account ID Section */}
-              {selectedAccount && selectedAccount.id === 'all' ? (
-                // If "All Holdings" is selected, show a dropdown for selecting an account
-                <SelectField
-                  label="Select Account for holding"
-                  value={newHolding.account_id}
-                  onChange={(e) =>
-                    setNewHolding({
-                      ...newHolding,
-                      account_id: e.target.value,
-                    })
-                  }
-                >
-                  <option value="" disabled>Select Account here</option>
-                  {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} {/* Display account name in the dropdown */}
-                    </option>
-                  ))}
-                </SelectField>
-              ) : (
-                // If an account is selected, display the account name 
+              {
                 selectedAccount && selectedAccount.name ? (
+                  
                   <div>
                   <label>Account</label>
                   <div>{selectedAccount.name}</div> 
+                  {/* Set the account_id in newHolding */}
+                  {newHolding.account_id !== selectedAccount.id && setNewHolding({
+                    ...newHolding,
+                    account_id: selectedAccount.id,
+                  })}
                   </div>
+                 
                 ) : (
                   // If no account is selected, show the dropdown for selecting an account
                   <SelectField
@@ -618,7 +605,7 @@ export default function App() {
                     ))}
                   </SelectField>
                 )
-              )}
+              }
 
 
             <TextField
