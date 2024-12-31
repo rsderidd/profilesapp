@@ -539,7 +539,7 @@ export default function App() {
           <table>
             <thead>
               <tr key="hdr">
-              <th>Account ID</th>
+              <th>Account Name</th>
               <th>Name</th>
               <th>Purchase Date</th>
               <th>Amount Paid</th>
@@ -551,9 +551,12 @@ export default function App() {
             </thead>
             <tbody>
 
-          {holdings.map((holding) => (
+          {holdings.map((holding) => {
+            const account = accounts.find((acc) => acc.id === holding.account_id); // Find the account by ID
+            const accountName = account ? account.name : "Unknown Account"; // Fallback if account is not found
+            return (
             <tr key={holding.id}>
-              <td>{holding.account_id}</td>
+              <td>{accountName}</td>
               <td>{holding.name}</td>
               <td>{holding.purchase_date}</td>
               <td>{holding.amount_paid}</td>
@@ -564,7 +567,9 @@ export default function App() {
               <Button onClick={() => deleteHolding(holding.id)}>Delete</Button>
               </td>
             </tr>
-          ))}
+          
+          )}
+          )}
 
             </tbody>
           </table>
