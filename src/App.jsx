@@ -267,8 +267,9 @@ export default function App() {
       } else {
         setSelectedAccount({ id: accountId, name: accountName });
       }
-      setActiveTab("Holdings");
-  
+      //setActiveTab("Holdings");
+      openPage("Holdings");
+
       const filter = accountId && accountId !== 'all' 
       ? { account_id: { eq: accountId } } 
       : {};  // No filter for "All Holdings"
