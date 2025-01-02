@@ -49,21 +49,17 @@ body, html {
   font-family: Arial;
 }
 
-/* Set the colors for each tab */
 #Accounts {
-  --tab-color: red;
+  --tab-color: #ff0000; /* Use hex color code for red */
 }
-
 #Holdings {
-  --tab-color: green;
+  --tab-color: #00ff00; /* Green */
 }
-
 #Ledger {
-  --tab-color: blue;
+  --tab-color: #0000ff; /* Blue */
 }
-
 #About {
-  --tab-color: orange;
+  --tab-color: #ffa500; /* Orange */
 }
 
 /* General Tab Button Styles */
@@ -181,4 +177,63 @@ table thead th:not(:last-child) {
 
 table tbody tr td {
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+/* Override DataGrid Styles */
+.MuiDataGrid-root {
+  background-color: white;
+  border-radius: 6px;
+  font-family: 'Arial', sans-serif;
+  width: 100%;
+}
+
+.MuiDataGrid-columnHeaders {
+  color: color-contrast(var(--tab-color) vs black, white); /* Automatically choose black or white for contrast */
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Row styling */
+.MuiDataGrid-row {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Alternating row colors */
+.MuiDataGrid-row:nth-of-type(odd) {
+  background-color: color-mix(in srgb, var(--tab-color) 60%, white 40%);
+}
+
+.MuiDataGrid-row:nth-of-type(even) {
+  background-color: color-mix(in srgb, var(--tab-color) 50%, white 50%);
+}
+
+/* Hover effect */
+.MuiDataGrid-row:hover {
+  background-color: color-mix(in srgb, var(--tab-color) 70%, black 30%);
+  color: color-contrast(var(--tab-color) vs black, white); /* Automatically choose black or white for contrast */
+}
+
+/* Cell styles */
+.MuiDataGrid-cell {
+  border-right: 1px solid color-mix(in srgb, var(--tab-color) 70%, black 30%);
+  text-align: center;
+}
+
+/* Last cell in the row */
+.MuiDataGrid-cell:last-of-type {
+  border-right: none;
+}
+
+/* Custom actions column styling */
+.MuiDataGrid-cell[data-field="actions"] {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Pagination controls */
+.MuiDataGrid-footerContainer {
+  background-color: color-mix(in srgb, var(--tab-color) 60%, white 20%); /* Match footer color with headers */
+  color: color-contrast(var(--tab-color) vs black, white); /* Automatically choose black or white for contrast */
 }

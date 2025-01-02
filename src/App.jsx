@@ -17,6 +17,8 @@ import outputs from "../amplify_outputs.json";
 import './App.css';
 import { createAccounts, createHoldings, deleteAccounts, deleteHoldings, updateAccounts, updateHoldings } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listAccounts, listHoldings } from "../amplify/auth/post-confirmation/graphql/queries"; 
+import AccountList from "./AccountList";
+import HoldingList from "./HoldingList";
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
@@ -30,6 +32,7 @@ export default function App() {
   const [userprofiles, setUserProfiles] = useState([]);
   const [activeTab, setActiveTab] = useState("Home");
   const { signOut } = useAuthenticator((context) => [context.user]);
+  const [tabColor, setTabColor] = useState();
 
   useEffect(() => {
     fetchUserProfile();
@@ -44,8 +47,14 @@ export default function App() {
   // Function to change the active tab
   const openPage = (pageName) => {
     setActiveTab(pageName);
-    console.log('Switching to tab:', pageName); // Debugging line
   
+    // Dynamically fetch the CSS variable for the active tab's color
+    const activeTabElement = document.getElementById(pageName);
+    const tabColor = activeTabElement 
+      ? getComputedStyle(activeTabElement).getPropertyValue("--tab-color").trim()
+      : "#343434"; // Default fallback color
+  
+    setTabColor(tabColor); // Set the tab color in state
   };
   
   const [isUpdating, setIsUpdating] = useState(false);
@@ -74,29 +83,40 @@ export default function App() {
   const [editingHolding, setEditingHolding] = useState(null);
   const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
 
+
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchAccounts();
-    fetchHoldings();
-  }, []);
+    const fetchAllData = async () => {
+      try {
+        // Fetch accounts
+        const { data: accountData } = await client.models.Accounts.list();
+        setAccounts(accountData);
+        // console.log("Fetched accounts:", accountData); // Debugging log
 
-  const fetchAccounts = async () => {
-    try {
-      const { data } = await client.models.Accounts.list();
-      setAccounts(data);
-    } catch (err) {
-      console.error("Error fetching accounts:", err);
-    }
-  };
+        // Fetch holdings
+        const { data: holdingsData } = await client.models.Holdings.list();
+        setSelectedAccount(null)
+        setHoldings(holdingsData);
+        // console.log("Fetched holdings:", holdingsData); // Debugging log
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchHoldings = async () => { 
-    try {
-      const {data} = await  client.models.Holdings.list(); // Amplify.API.graphql({ query: listHoldings });
-      setSelectedAccount(null)
-      setHoldings(data);
-    } catch (err) {
-      console.error("Error fetching holdings:", err);
-    }
-  };
+    fetchAllData();
+    
+  }, []); // Empty dependency array ensures this runs only once when the component mounts
+
+  // Map holdings with account names
+  const modifiedHoldings = holdings.map((holding) => {
+    const account = accounts.find((acc) => acc.id === holding.account_id); // Find the account by ID
+    const accountName = account ? account.name : "Unknown Account"; // Fallback if account is not found
+    // console.log(`Mapping holding: ${holding.id}, accountName: ${accountName}`); // Debugging log
+    return { ...holding, accountName }; // Add accountName to the holding
+  });
 
   const addAccount = async () => {
     try {
@@ -378,33 +398,13 @@ export default function App() {
       <div id="Accounts" className={`tabcontent ${activeTab === 'Accounts' ? 'active' : ''}`}>
           <Flex key="acnts" direction="column" gap="1rem">
             <Heading level={2}>Accounts</Heading>
-            <table>
-            <thead>
-              <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Birthdate</th>
-              <th>Min Withdrawal Date</th>
-              <th>Starting Balance</th>
-              <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-            {accounts.map((account) => (
-              <tr key={account.id}>
-                <td>{account.name}</td>
-                <td>{account.type}</td>
-                <td>{account.birthdate}</td>
-                <td>{account.min_withdrawal_date}</td>
-                <td>{account.starting_balance}</td>
-                <td><Button onClick={() => deleteAccount(account.id)}>Delete</Button>
-                <Button onClick={() => setEditingAccount(account)}>Edit</Button>
-                <Button onClick={() => handleViewHoldings(account.id, account.name)}>View Holdings</Button>
-                </td>
-                </tr>
-            ))}
-            </tbody>
-            </table>
+            <AccountList 
+              accounts={accounts} 
+              deleteAccount={deleteAccount} 
+              setEditingAccount={setEditingAccount} 
+              handleViewHoldings={handleViewHoldings}
+              tabColor={tabColor} 
+            />
             {editingAccount ? (
               <Flex direction="column" gap="1rem">
                 <Heading level={3}>Edit Account</Heading>
@@ -536,43 +536,18 @@ export default function App() {
               ))}
             </SelectField>
 
-          <table>
-            <thead>
-              <tr key="hdr">
-              <th>Account Name</th>
-              <th>Name</th>
-              <th>Purchase Date</th>
-              <th>Amount Paid</th>
-              <th>Maturity Date</th>
-              <th>Rate</th>
-              <th>Amount at Maturity</th>
-              <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+            {loading ? (
+              <p>Loading...</p> // Loading state while fetching data
+              ) : (
+                <HoldingList 
+                holdings={modifiedHoldings} 
+                deleteHolding={deleteHolding} 
+                setEditingHolding={setEditingHolding} 
+                tabColor={tabColor} 
+              />
+              )}
 
-          {holdings.map((holding) => {
-            const account = accounts.find((acc) => acc.id === holding.account_id); // Find the account by ID
-            const accountName = account ? account.name : "Unknown Account"; // Fallback if account is not found
-            return (
-            <tr key={holding.id}>
-              <td>{accountName}</td>
-              <td>{holding.name}</td>
-              <td>{holding.purchase_date}</td>
-              <td>{holding.amount_paid}</td>
-              <td>{holding.maturity_date}</td>
-              <td>{holding.rate}</td>
-              <td>{holding.amount_at_maturity}</td>
-              <td><Button onClick={() => setEditingHolding(holding)}>Edit</Button>
-              <Button onClick={() => deleteHolding(holding.id)}>Delete</Button>
-              </td>
-            </tr>
-          
-          )}
-          )}
 
-            </tbody>
-          </table>
           <Divider />
 
           <Flex key="edthld" direction="column" gap="1rem">
