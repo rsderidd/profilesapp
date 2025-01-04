@@ -19,6 +19,7 @@ import { createAccounts, createHoldings, deleteAccounts, deleteHoldings, updateA
 import { listAccounts, listHoldings } from "../amplify/auth/post-confirmation/graphql/queries"; 
 import AccountList from "./AccountList";
 import HoldingList from "./HoldingList";
+import AccountForm from './AccountForm';
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
@@ -33,6 +34,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("Home");
   const { signOut } = useAuthenticator((context) => [context.user]);
   const [tabColor, setTabColor] = useState();
+  const [editingAccount, setEditingAccount] = useState(null); // Add editingAccount state
 
   useEffect(() => {
     fetchUserProfile();
@@ -60,14 +62,6 @@ export default function App() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const [accounts, setAccounts] = useState([]);
-  const [newAccount, setNewAccount] = useState({
-    name: "",
-    type: "",
-    birthdate: "",
-    min_withdrawal_date: "",
-    starting_balance: "",
-  });
-  const [editingAccount, setEditingAccount] = useState(null);
 
   // Holdings State 
   const [holdings, setHoldings] = useState([]);
@@ -115,23 +109,17 @@ export default function App() {
     return { ...holding, accountName }; // Add accountName to the holding
   });
 
-  const addAccount = async () => {
+  const addAccount = async (addedAccount) => {
+    console.log("new account:", addedAccount);   
     try {
       const createdAccount = await client.models.Accounts.create({
-        ...newAccount,
-        starting_balance: parseFloat(newAccount.starting_balance),
+        ...addedAccount,
+        starting_balance: parseFloat(addedAccount.starting_balance),
       });
       const caccount = createdAccount.data || createdAccount
 
       setAccounts((prevAccounts) => [...prevAccounts, caccount]);
       fetchAccounts(); // Refreshes the list after adding
-      setNewAccount({
-        name: "",
-        type: "",
-        birthdate: "",
-        min_withdrawal_date: "",
-        starting_balance: "",
-      });
     } catch (err) {
       console.error("Error adding account:", err);
     }
@@ -152,7 +140,7 @@ export default function App() {
         maturity_date: newHolding.maturity_date,
         rate: parseFloat(newHolding.rate),
         amount_at_maturity: parseFloat(newHolding.amount_at_maturity),
-    });
+      });
       setHoldings((prevHoldings) => [...prevHoldings, createdHolding]);
       if (selectedAccount) {
         await handleViewHoldings(selectedAccount.id, selectedAccount.name);
@@ -209,24 +197,24 @@ export default function App() {
     }
   };
 
-  const updateAccount = async () => {
+  const updateAccount = async (updatedAccount) => {
     setIsUpdating(true);
     try {
 
       // Prepare the updated data for the account
       const updatedData = {
-        id: editingAccount.id, // Required for update
-        name: editingAccount.name,
-        type: editingAccount.type,
-        birthdate: editingAccount.birthdate,
-        min_withdrawal_date: editingAccount.min_withdrawal_date,
-        starting_balance: parseFloat(editingAccount.starting_balance),
+        id: updatedAccount.id, // Required for update
+        name: updatedAccount.name,
+        type: updatedAccount.type,
+        birthdate: updatedAccount.birthdate,
+        min_withdrawal_date: updatedAccount.min_withdrawal_date,
+        starting_balance: parseFloat(updatedAccount.starting_balance),
       };
   
       console.log("Payload for update:", updatedData);
 
       // Prepare the condition for the update (if needed)
-      const condition = {};  // You can add condition logic here if necessary
+      // const condition = {};  // You can add condition logic here if necessary
   
       // Perform the update using the API and the updateAccounts mutation
       // const result = await client.models.Accounts.update(editingAccount.id, updatedData, { condition });
@@ -248,8 +236,7 @@ export default function App() {
         )
       );
   
-      setEditingAccount(null); // Clear the editing state
-    } catch (err) {
+     } catch (err) {
       console.error("Error updating account:", err);
       alert("Failed to update the account. Please try again later.");
     } finally {
@@ -405,104 +392,13 @@ export default function App() {
               handleViewHoldings={handleViewHoldings}
               tabColor={tabColor} 
             />
-            {editingAccount ? (
-              <Flex direction="column" gap="1rem">
-                <Heading level={3}>Edit Account</Heading>
-                <TextField
-                  label="Name"
-                  value={editingAccount.name}
-                  onChange={(e) =>
-                    setEditingAccount({ ...editingAccount, name: e.target.value })
-                  }
-                />
-                <TextField
-                  label="Type"
-                  value={editingAccount.type}
-                  onChange={(e) =>
-                    setEditingAccount({ ...editingAccount, type: e.target.value })
-                  }
-                />
-                <TextField
-                  label="Birthdate"
-                  value={editingAccount.birthdate}
-                  onChange={(e) =>
-                    setEditingAccount({ ...editingAccount, birthdate: e.target.value })
-                  }
-                />
-                <TextField
-                  label="Min Withdrawal Date"
-                  value={editingAccount.min_withdrawal_date}
-                  onChange={(e) =>
-                    setEditingAccount({
-                      ...editingAccount,
-                      min_withdrawal_date: e.target.value,
-                    })
-                  }
-                />
-                <TextField
-                  label="Starting Balance"
-                  value={editingAccount.starting_balance}
-                  onChange={(e) =>
-                    setEditingAccount({
-                      ...editingAccount,
-                      starting_balance: e.target.value,
-                    })
-                  }
-                />
-                {editingAccount && (
-                  <Button onClick={updateAccount} disabled={isUpdating}>
-                    {isUpdating ? "Saving..." : "Save"}
-                  </Button>
-                )}
-              <Button onClick={() => setEditingAccount(null)}>Cancel</Button>
-              </Flex>
-            ) : (
-              <Flex direction="column" gap="1rem">
-                <Heading level={3}>Add New Account</Heading>
-                <TextField
-                  label="Name"
-                  value={newAccount.name}
-                  onChange={(e) =>
-                    setNewAccount({ ...newAccount, name: e.target.value })
-                  }
-                />
-                <TextField
-                  label="Type"
-                  value={newAccount.type}
-                  onChange={(e) =>
-                    setNewAccount({ ...newAccount, type: e.target.value })
-                  }
-                />
-                <TextField
-                  label="Birthdate"
-                  value={newAccount.birthdate}
-                  onChange={(e) =>
-                    setNewAccount({ ...newAccount, birthdate: e.target.value })
-                  }
-                />
-                <TextField
-                  label="Min Withdrawal Date"
-                  value={newAccount.min_withdrawal_date}
-                  onChange={(e) =>
-                    setNewAccount({
-                      ...newAccount,
-                      min_withdrawal_date: e.target.value,
-                    })
-                  }
-                />
-                <TextField
-                  label="Starting Balance"
-                  value={newAccount.starting_balance}
-                  onChange={(e) =>
-                    setNewAccount({
-                      ...newAccount,
-                      starting_balance: e.target.value,
-                    })
-                  }
-                />
-                <Button onClick={addAccount}>Add Account</Button>
-              </Flex>
-            )}
+            <AccountForm 
+              editingAccount={editingAccount} 
+              setEditingAccount={setEditingAccount} 
+              isUpdating={isUpdating} 
+              updateAccount={updateAccount} 
+              addAccount={addAccount} 
+            />
           </Flex>
       </div>
     

@@ -45,7 +45,6 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
   const columnVisibilityModel = {
     id: false, // Initially hidden
   };
-  console.log("Accounts data:", accounts);
 
   return (
     <ThemeProvider theme={theme}>
