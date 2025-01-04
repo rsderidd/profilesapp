@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Flex, Heading, TextField } from '@aws-amplify/ui-react';
+import { Button, Flex, Heading, TextField, SelectField } from '@aws-amplify/ui-react';
 
 const AccountForm = ({
   editingAccount,
@@ -71,13 +71,20 @@ const AccountForm = ({
               setNewAccount({ ...newAccount, name: e.target.value })
             }
           />
-          <TextField
+          <SelectField
             label="Type"
             value={newAccount.type}
             onChange={(e) =>
               setNewAccount({ ...newAccount, type: e.target.value })
             }
-          />
+          >
+            <option value="" disabled>
+                Select Account Type
+            </option>
+            <option value="RRSP">RRSP</option>
+            <option value="RRIF">RRIF</option>
+            <option value="TFSA">TFSA</option>
+            </SelectField>
           <TextField
             label="Birthdate"
             value={newAccount.birthdate}
@@ -120,13 +127,21 @@ const AccountForm = ({
               setNewAccount({ ...newAccount, name: e.target.value })
             }
           />
-          <TextField
+          <SelectField
             label="Type"
             value={newAccount.type}
             onChange={(e) =>
               setNewAccount({ ...newAccount, type: e.target.value })
             }
-          />
+          >
+            <option value="" disabled>
+                Select Account Type
+            </option>
+            <option value="RRSP">RRSP</option>
+            <option value="RRIF">RRIF</option>
+            <option value="TFSA">TFSA</option>
+            </SelectField>
+          
           <TextField
             label="Birthdate"
             value={newAccount.birthdate}
