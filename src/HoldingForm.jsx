@@ -39,6 +39,7 @@ const HoldingForm = ({
     } else {
         setEditing(false);
         setNewHolding({
+            account_id: "",
             name: "",
             purchase_date: "",
             amount_paid: "",
@@ -203,7 +204,7 @@ const HoldingForm = ({
                     })
               }
             />
-            <Button onClick={editingHolding ? updateHolding : addHolding}>
+            <Button onClick={editingHolding ? handleUpdateHolding : handleAddHolding}>
               {editingHolding ? "Save Changes" : "Add Holding"}
             </Button>
             {editingHolding && (

@@ -118,37 +118,30 @@ export default function App() {
     }
   };
 
-  const addHolding = async () => { // HOLDINGS: Added
-    if (!newHolding.account_id) {
+  const addHolding = async (addedholding) => { // HOLDINGS: Added
+    console.log("holding to add:", addedholding)
+    if (!addedholding.account_id) {
       console.error("Select an Account!");
       return;
     }
     
     try {
       const createdHolding = await client.models.Holdings.create({
-        account_id: newHolding.account_id,
-        name: newHolding.name,
-        purchase_date: newHolding.purchase_date,
-        amount_paid: parseFloat(newHolding.amount_paid),
-        maturity_date: newHolding.maturity_date,
-        rate: parseFloat(newHolding.rate),
-        amount_at_maturity: parseFloat(newHolding.amount_at_maturity),
+        account_id: addedholding.account_id,
+        name: addedholding.name,
+        purchase_date: addedholding.purchase_date,
+        amount_paid: parseFloat(addedholding.amount_paid),
+        maturity_date: addedholding.maturity_date,
+        rate: parseFloat(addedholding.rate),
+        amount_at_maturity: parseFloat(addedholding.amount_at_maturity),
       });
-      setHoldings((prevHoldings) => [...prevHoldings, createdHolding]);
+      const cholding = createdHolding.data || createdHolding
+      setHoldings((prevHoldings) => [...prevHoldings, cholding]);
       if (selectedAccount) {
         await handleViewHoldings(selectedAccount.id, selectedAccount.name);
       } else {
          fetchHoldings();
       }
-      setNewHolding({
-        account_id: "",
-        name: "",
-        purchase_date: "",
-        amount_paid: "",
-        maturity_date: "",
-        rate: "",
-        amount_at_maturity: "",
-      });
     } catch (err) {
       console.error("Error adding holding:", err);
     }
