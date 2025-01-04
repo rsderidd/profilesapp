@@ -121,7 +121,9 @@ export default function App() {
         ...newAccount,
         starting_balance: parseFloat(newAccount.starting_balance),
       });
-      setAccounts((prevAccounts) => [...prevAccounts, createdAccount]);
+      const caccount = createdAccount.data || createdAccount
+
+      setAccounts((prevAccounts) => [...prevAccounts, caccount]);
       fetchAccounts(); // Refreshes the list after adding
       setNewAccount({
         name: "",
@@ -518,6 +520,7 @@ export default function App() {
           **/}
 
             <SelectField
+              key="sctaccnt"
               label="Select Account"
               value={selectedAccount ? selectedAccount.id : 'all'}
               onChange={(e) => {
@@ -526,7 +529,7 @@ export default function App() {
                 handleViewHoldings(selectedAccountId, selectedAccountName);
               }}
             >
-              <option value="all">All Holdings</option>
+              <option key="all" value="all">All Holdings</option>
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.name}
@@ -535,6 +538,7 @@ export default function App() {
             </SelectField>
 
             <HoldingList 
+                key ="hldlst"
                 holdings={modifiedHoldings} 
                 deleteHolding={deleteHolding} 
                 setEditingHolding={setEditingHolding} 

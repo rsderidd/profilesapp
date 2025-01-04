@@ -15,6 +15,12 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
   });
 
   const columns = [
+    { 
+      field: "id", 
+      headerName: "Hidden Column", 
+      hide: true,  // This makes the column invisible
+      flex: 1 
+    },
     { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
     { field: "type", headerName: "Type", flex: 1 },
     { field: "birthdate", headerName: "Birthdate", flex: 1 },
@@ -36,6 +42,10 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
       ),
     },
   ];
+  const columnVisibilityModel = {
+    id: false, // Initially hidden
+  };
+  console.log("Accounts data:", accounts);
 
   return (
     <ThemeProvider theme={theme}>
@@ -46,6 +56,7 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableSelectionOnClick
+          columnVisibilityModel={columnVisibilityModel} // This controls visibility
         />
       </div>
     </ThemeProvider>
