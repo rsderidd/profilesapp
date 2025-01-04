@@ -83,32 +83,29 @@ export default function App() {
   const [editingHolding, setEditingHolding] = useState(null);
   const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
 
-
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        // Fetch accounts
-        const { data: accountData } = await client.models.Accounts.list();
-        setAccounts(accountData);
-        // console.log("Fetched accounts:", accountData); // Debugging log
+    fetchAccounts();
+    fetchHoldings();
+  }, []);
 
-        // Fetch holdings
-        const { data: holdingsData } = await client.models.Holdings.list();
-        setSelectedAccount(null)
-        setHoldings(holdingsData);
-        // console.log("Fetched holdings:", holdingsData); // Debugging log
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchAccounts = async () => {
+    try {
+      const { data } = await client.models.Accounts.list();
+      setAccounts(data);
+    } catch (err) {
+      console.error("Error fetching accounts:", err);
+    }
+  };
 
-    fetchAllData();
-    
-  }, []); // Empty dependency array ensures this runs only once when the component mounts
+  const fetchHoldings = async () => { 
+    try {
+      const {data} = await  client.models.Holdings.list(); // Amplify.API.graphql({ query: listHoldings });
+      setSelectedAccount(null)
+      setHoldings(data);
+    } catch (err) {
+      console.error("Error fetching holdings:", err);
+    }
+  };
 
   // Map holdings with account names
   const modifiedHoldings = holdings.map((holding) => {
@@ -537,18 +534,13 @@ export default function App() {
               ))}
             </SelectField>
 
-            {loading ? (
-              <p>Loading...</p> // Loading state while fetching data
-              ) : (
-                <HoldingList 
+            <HoldingList 
                 holdings={modifiedHoldings} 
                 deleteHolding={deleteHolding} 
                 setEditingHolding={setEditingHolding} 
                 tabColor={tabColor} 
-              />
-              )}
-
-
+            />
+              
           <Divider />
 
           <Flex key="edthld" direction="column" gap="1rem">
