@@ -57,8 +57,49 @@ const AccountForm = ({
   const handleUpdateAccount = () => {
     updateAccount(newAccount);
     setEditingAccount(null); // Clear the editing state
+    setNewAccount({
+      name: '',
+      type: '',
+      birthdate: '',
+      min_withdrawal_date: '',
+      starting_balance: ''
+    });
   };
 
+  const handleDateChange = (field, value) => {
+    let formattedValue = value.replace(/[^0-9-]/g, '');
+
+    // Remove extra dashes
+    formattedValue = formattedValue.replace(/-{2,}/g, '-');
+  
+    // Prevent invalid formatting like starting with a dash or multiple dashes
+    if (formattedValue.startsWith('-')) {
+      formattedValue = formattedValue.slice(1);
+    }
+  
+    // Format as yyyy-mm-dd only if enough digits are present
+    const digitsOnly = formattedValue.replace(/-/g, '');
+    if (digitsOnly.length > 4 && digitsOnly.length <= 6) {
+      formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}`;
+    } else if (digitsOnly.length > 6) {
+      formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}-${digitsOnly.slice(6, 8)}`;
+    }
+
+    setNewAccount((prev) => ({ ...prev, [field]: formattedValue }));
+  };
+
+  const handleCancel = () => {
+    setEditing(false)
+    setEditingAccount(null); // Clear the editing state
+    setNewAccount({
+      name: '',
+      type: '',
+      birthdate: '',
+      min_withdrawal_date: '',
+      starting_balance: ''
+    });    
+  }
+  
   return (
     <Flex direction="column" gap="1rem">
       {editing ? (
@@ -85,23 +126,23 @@ const AccountForm = ({
             <option value="RRIF">RRIF</option>
             <option value="TFSA">TFSA</option>
             </SelectField>
+
+            <TextField
+              label="Birthdate (yyyy-mm-dd)"
+              value={newAccount.birthdate}
+              onChange={(e) => handleDateChange("birthdate", e.target.value)}
+              maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
+              placeholder="yyyy-mm-dd"
+            />
+
           <TextField
-            label="Birthdate"
-            value={newAccount.birthdate}
-            onChange={(e) =>
-              setNewAccount({ ...newAccount, birthdate: e.target.value })
-            }
-          />
-          <TextField
-            label="Min Withdrawal Date"
+            label="Min Withdrawal Date (yyyy-mm-dd)"
             value={newAccount.min_withdrawal_date}
-            onChange={(e) =>
-              setNewAccount({
-                ...newAccount,
-                min_withdrawal_date: e.target.value
-              })
-            }
-          />
+            onChange={(e) => handleDateChange("min_withdrawal_date:", e.target.value)}
+            maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
+            placeholder="yyyy-mm-dd"
+        />
+
           <TextField
             label="Starting Balance"
             value={newAccount.starting_balance}
@@ -115,7 +156,7 @@ const AccountForm = ({
           <Button onClick={handleUpdateAccount} disabled={isUpdating}>
             {isUpdating ? 'Saving...' : 'Save'}
           </Button>
-          <Button onClick={() => setEditing(false)}>Cancel</Button>
+          <Button onClick={() => handleCancel()}>Cancel</Button>
         </>
       ) : (
         <>
@@ -140,25 +181,24 @@ const AccountForm = ({
             <option value="RRSP">RRSP</option>
             <option value="RRIF">RRIF</option>
             <option value="TFSA">TFSA</option>
-            </SelectField>
-          
+          </SelectField>
+
           <TextField
-            label="Birthdate"
+            label="Birthdate (yyyy-mm-dd)"
             value={newAccount.birthdate}
-            onChange={(e) =>
-              setNewAccount({ ...newAccount, birthdate: e.target.value })
-            }
+            onChange={(e) => handleDateChange("birthdate", e.target.value)}
+            maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
+            placeholder="yyyy-mm-dd"
           />
+
           <TextField
-            label="Min Withdrawal Date"
+            label="Min Withdrawal Date (yyyy-mm-dd)"
             value={newAccount.min_withdrawal_date}
-            onChange={(e) =>
-              setNewAccount({
-                ...newAccount,
-                min_withdrawal_date: e.target.value
-              })
-            }
+            onChange={(e) => handleDateChange("min_withdrawal_date", e.target.value)}
+            maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
+            placeholder="yyyy-mm-dd"
           />
+
           <TextField
             label="Starting Balance"
             value={newAccount.starting_balance}
