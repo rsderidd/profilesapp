@@ -17,11 +17,11 @@ const HoldingList = ({ holdings, deleteHolding, setEditingHolding, tabColor }) =
   const columns = [
     { field: "accountName", headerName: "Account Name", flex: 1, minWidth: 150 },
     { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
-    { field: "purchase_date", headerName: "Purchase Date", flex: 1 },
-    { field: "amount_paid", headerName: "Amount Paid", flex: 1, type: "number" },
-    { field: "maturity_date", headerName: "Maturity Date", flex: 1 },
-    { field: "rate", headerName: "Rate", flex: 1 },
-    { field: "amount_at_maturity", headerName: "Amount At Maturity", flex: 1 },
+    { field: "purchase_date", headerName: "Purchase Date", flex: 1, minWidth: 100 },
+    { field: "amount_paid", headerName: "Amount Paid", flex: 1, type: "number", minWidth: 100  },
+    { field: "maturity_date", headerName: "Maturity Date", flex: 1, minWidth: 100 },
+    { field: "rate", headerName: "Rate", flex: 1 ,type: "number", minWidth: 100 },
+    { field: "amount_at_maturity", headerName: "Amount At Maturity", flex: 1 ,type: "number", minWidth: 100 },
     {
       field: "actions",
       headerName: "Actions",

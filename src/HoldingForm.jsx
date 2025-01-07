@@ -155,11 +155,11 @@ const HoldingForm = ({
               }
             />
             <TextField
-              label="Purchase Date"
+              label="Purchase Date (yyyy-mm-dd)"
               value={newHolding.purchase_date}
-              onChange={(e) => 
-                setNewHolding({...newHolding,purchase_date: e.target.value,})
-              }
+              onChange={(e) => handleDateChange("purchase_date", e.target.value)}
+              maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
+              placeholder="yyyy-mm-dd"                    
             />
             <TextField
               label="Amount Paid"
@@ -170,11 +170,11 @@ const HoldingForm = ({
               }
             />
             <TextField
-              label="Maturity Date"
+              label="Maturity Date (yyyy-mm-dd)"
               value={newHolding.maturity_date}
-              onChange={(e) => 
-                setNewHolding({...newHolding,maturity_date: e.target.value,})
-              }
+              onChange={(e) => handleDateChange("maturity_date", e.target.value)}
+              maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
+              placeholder="yyyy-mm-dd"
             />
             <TextField
               label="Rate"
