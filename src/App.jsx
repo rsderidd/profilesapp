@@ -255,18 +255,18 @@ export default function App() {
     }
   };
   
-  const updateHolding = async () => {
+  const updateHolding = async (updatedHolding) => {
     setIsUpdatingHolding(true);
     try {
       const updatedData = {
-        id: editingHolding.id,
-        account_id: editingHolding.account_id,
-        name: editingHolding.name,
-        purchase_date: editingHolding.purchase_date,
-        amount_paid: parseFloat(editingHolding.amount_paid),
-        maturity_date: editingHolding.maturity_date,
-        rate: parseFloat(editingHolding.rate),
-        amount_at_maturity: parseFloat(editingHolding.amount_at_maturity),  
+        id: updatedHolding.id,
+        account_id: updatedHolding.account_id,
+        name: updatedHolding.name,
+        purchase_date: updatedHolding.purchase_date,
+        amount_paid: parseFloat(updatedHolding.amount_paid),
+        maturity_date: updatedHolding.maturity_date,
+        rate: parseFloat(updatedHolding.rate),
+        amount_at_maturity: parseFloat(updatedHolding.amount_at_maturity),  
       };
 
       const result = await client.graphql({

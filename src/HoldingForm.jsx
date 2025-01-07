@@ -65,21 +65,15 @@ const HoldingForm = ({
       const handleUpdateHolding = () => {
         updateHolding(newHolding);
         setEditingHolding(null); // Clear the editing state
-      };
-
-      const handleCancel = () => {
-        setEditing(false)
-        setEditingHolding(null); // Clear the editing state
         setNewHolding({
-            name: "",
-            purchase_date: "",
-            amount_paid: "",
-            maturity_date: "",
-            rate: "",
-            amount_at_maturity: "",
-        });
-      }
-      
+          name: "",
+          purchase_date: "",
+          amount_paid: "",
+          maturity_date: "",
+          rate: "",
+          amount_at_maturity: "",
+      });      };
+
       const handleDateChange = (field, value) => {
         let formattedValue = value.replace(/[^0-9-]/g, '');
     
@@ -102,6 +96,19 @@ const HoldingForm = ({
         setNewHolding((prev) => ({ ...prev, [field]: formattedValue }));
       };
 
+      const handleCancel = () => {
+        setEditing(false)
+        setEditingHolding(null); // Clear the editing state
+        setNewHolding({
+            name: "",
+            purchase_date: "",
+            amount_paid: "",
+            maturity_date: "",
+            rate: "",
+            amount_at_maturity: "",
+        });
+      }
+      
       return (
 
         <Flex key="edthld" direction="column" gap="1rem">
@@ -117,10 +124,7 @@ const HoldingForm = ({
                   <label>Account</label>
                   <div>{selectedAccount.name}</div> 
                   {/* Set the account_id in newHolding */}
-                  {newHolding.account_id !== selectedAccount.id && setNewHolding({
-                    ...newHolding,
-                    account_id: selectedAccount.id,
-                  })}
+                  {newHolding.account_id !== selectedAccount.id && setNewHolding({...newHolding, account_id: selectedAccount.id,})}
                   </div>
                  
                 ) : (
@@ -129,10 +133,7 @@ const HoldingForm = ({
                     label="Select Account"
                     value={newHolding.account_id}
                     onChange={(e) =>
-                      setNewHolding({
-                        ...newHolding,
-                        account_id: e.target.value,
-                      })
+                      setNewHolding({...newHolding,account_id: e.target.value,})
                     }
                   >
                     <option value="" disabled>Select Account</option>
@@ -148,102 +149,57 @@ const HoldingForm = ({
 
             <TextField
               label="Name"
-              value={editingHolding ? editingHolding.name : newHolding.name}
+              value={newHolding.name}
               onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      name: e.target.value,
-                    })
-                  : setNewHolding({
-                      ...newHolding,
-                      name: e.target.value,
-                    })
+                setNewHolding({...newHolding,name: e.target.value,})
               }
             />
             <TextField
               label="Purchase Date"
-              value={editingHolding ? editingHolding.purchase_date : newHolding.purchase_date}
-              onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      purchase_date: e.target.value,
-                    })
-                  : setNewHolding({
-                      ...newHolding,
-                      purchase_date: e.target.value,
-                    })
+              value={newHolding.purchase_date}
+              onChange={(e) => 
+                setNewHolding({...newHolding,purchase_date: e.target.value,})
               }
             />
             <TextField
               label="Amount Paid"
               type="number"
-              value={editingHolding ? editingHolding.amount_paid : newHolding.amount_paid}
+              value={newHolding.amount_paid}
               onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      amount_paid: parseFloat(e.target.value),
-                    })
-                  : setNewHolding({
-                      ...newHolding,
-                      amount_paid: parseFloat(e.target.value),
-                    })
+                setNewHolding({...newHolding,amount_paid: parseFloat(e.target.value),})
               }
             />
             <TextField
               label="Maturity Date"
-              value={editingHolding ? editingHolding.maturity_date : newHolding.maturity_date}
-              onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      maturity_date: e.target.value,
-                    })
-                  : setNewHolding({
-                      ...newHolding,
-                      maturity_date: e.target.value,
-                    })
+              value={newHolding.maturity_date}
+              onChange={(e) => 
+                setNewHolding({...newHolding,maturity_date: e.target.value,})
               }
             />
             <TextField
               label="Rate"
               type="number"
-              value={editingHolding ? editingHolding.rate : newHolding.rate}
-              onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      rate: parseFloat(e.target.value),
-                    })
-                  : setNewHolding({
-                      ...newHolding,
-                      rate: parseFloat(e.target.value),
-                    })
+              value={newHolding.rate}
+              onChange={(e) => 
+                setNewHolding({...newHolding,rate: parseFloat(e.target.value),})
               }
             />
             <TextField
               label="Amount at Maturity"
               type="number"
-              value={editingHolding ? editingHolding.amount_at_maturity : newHolding.amount_at_maturity}
-              onChange={(e) =>
-                editingHolding
-                  ? setEditingHolding({
-                      ...editingHolding,
-                      amount_at_maturity: parseFloat(e.target.value),
-                    })
-                  : setNewHolding({
-                      ...newHolding,
-                      amount_at_maturity: parseFloat(e.target.value),
-                    })
+              value={newHolding.amount_at_maturity}
+              onChange={(e) => 
+                setNewHolding({...newHolding,amount_at_maturity: parseFloat(e.target.value),})
               }
             />
-            <Button onClick={editingHolding ? handleUpdateHolding : handleAddHolding}>
+            <Button onClick={editingHolding ? 
+              handleUpdateHolding : 
+              handleAddHolding}>
               {editingHolding ? "Save Changes" : "Add Holding"}
             </Button>
             {editingHolding && (
-              <Button onClick={() => handleCancel()}>Cancel</Button>
+              <Button onClick={() => 
+                handleCancel()}>Cancel</Button>
             )}
           </Flex>
 
