@@ -25,7 +25,7 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
     { field: "type", headerName: "Type", flex: 1, minWidth: 75  },
     { field: "birthdate", headerName: "Birthdate", flex: 1, minWidth: 100 },
     { field: "min_withdrawal_date", headerName: "Min Withdrawal Date", flex: 1, minWidth: 100 },
-    { field: "starting_balance", headerName: "Starting Balance", flex: 1, type: "number" },
+    { field: "starting_balance", headerName: "Starting Balance", flex: 1, type: "number", minWidth: 100 },
     {
       field: "actions",
       headerName: "Actions",

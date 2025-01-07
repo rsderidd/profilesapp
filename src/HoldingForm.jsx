@@ -67,6 +67,41 @@ const HoldingForm = ({
         setEditingHolding(null); // Clear the editing state
       };
 
+      const handleCancel = () => {
+        setEditing(false)
+        setEditingHolding(null); // Clear the editing state
+        setNewHolding({
+            name: "",
+            purchase_date: "",
+            amount_paid: "",
+            maturity_date: "",
+            rate: "",
+            amount_at_maturity: "",
+        });
+      }
+      
+      const handleDateChange = (field, value) => {
+        let formattedValue = value.replace(/[^0-9-]/g, '');
+    
+        // Remove extra dashes
+        formattedValue = formattedValue.replace(/-{2,}/g, '-');
+      
+        // Prevent invalid formatting like starting with a dash or multiple dashes
+        if (formattedValue.startsWith('-')) {
+          formattedValue = formattedValue.slice(1);
+        }
+      
+        // Format as yyyy-mm-dd only if enough digits are present
+        const digitsOnly = formattedValue.replace(/-/g, '');
+        if (digitsOnly.length > 4 && digitsOnly.length <= 6) {
+          formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}`;
+        } else if (digitsOnly.length > 6) {
+          formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}-${digitsOnly.slice(6, 8)}`;
+        }
+    
+        setNewHolding((prev) => ({ ...prev, [field]: formattedValue }));
+      };
+
       return (
 
         <Flex key="edthld" direction="column" gap="1rem">
@@ -208,7 +243,7 @@ const HoldingForm = ({
               {editingHolding ? "Save Changes" : "Add Holding"}
             </Button>
             {editingHolding && (
-              <Button onClick={() => setEditingHolding(null)}>Cancel</Button>
+              <Button onClick={() => handleCancel()}>Cancel</Button>
             )}
           </Flex>
 

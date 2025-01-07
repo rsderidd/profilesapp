@@ -429,7 +429,7 @@ export default function App() {
 
           <HoldingForm 
               editingHolding={editingHolding} 
-              setEditingHolding={setEditingAccount} 
+              setEditingHolding={setEditingHolding} 
               isUpdatingHolding={isUpdatingHolding} 
               updateHolding={updateHolding} 
               addHolding={addHolding} 
