@@ -12,6 +12,25 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
         containerBackground: tabColor, // Customize the background for header
       },
     },
+    components: {
+      MuiDataGrid: {
+        styleOverrides: {
+          root: {
+            '& .MuiDataGrid-columnHeader': {
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              textOverflow: 'clip', // Prevent text truncation
+              overflow: 'visible', // Ensure wrapping works
+            },
+          },
+        },
+      },
+    },
+  
   });
 
   const columns = [
