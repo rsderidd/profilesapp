@@ -13,12 +13,14 @@ import "@aws-amplify/ui-react/styles.css";
 import { generateClient } from "aws-amplify/data";
 import outputs from "../amplify_outputs.json";
 import './App.css';
-import { createAccounts, createHoldings, deleteAccounts, deleteHoldings, updateAccounts, updateHoldings } from "../amplify/auth/post-confirmation/graphql/mutations"; 
+import { createAccounts, createHoldings, deleteAccounts, deleteHoldings, updateAccounts, updateHoldings, updateTransactions } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listAccounts, listHoldings } from "../amplify/auth/post-confirmation/graphql/queries"; 
 import AccountList from "./AccountList";
 import HoldingList from "./HoldingList";
 import AccountForm from './AccountForm';
 import HoldingForm from './HoldingForm';
+import TransactionList from "./TransactionList";
+import TransactionForm from './TransactionForm';
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
@@ -68,9 +70,16 @@ export default function App() {
   const [editingHolding, setEditingHolding] = useState(null);
   const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
 
+  // Transactions
+  const [transactions, setTransactions] = useState([]);
+
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
+
   useEffect(() => {
     fetchAccounts();
     fetchHoldings();
+    fetchTransactions();
   }, []);
 
   const fetchAccounts = async () => {
@@ -92,6 +101,16 @@ export default function App() {
     }
   };
 
+  const fetchTransactions = async () => { 
+    try {
+      const {data} = await  client.models.Transactions.list(); // Amplify.API.graphql({ query: listTransactions });
+      setSelectedAccount(null)
+      setTransactions(data);
+    } catch (err) {
+      console.error("Error fetching Transactions:", err);
+    }
+  };
+  
   // Map holdings with account names
   const modifiedHoldings = holdings.map((holding) => {
     const account = accounts.find((acc) => acc.id === holding.account_id); // Find the account by ID
@@ -99,6 +118,14 @@ export default function App() {
     // console.log(`Mapping holding: ${holding.id}, accountName: ${accountName}`); // Debugging log
     return { ...holding, accountName }; // Add accountName to the holding
   });
+
+    // Map transactions with account names
+    const modifiedTransactions = transactions.map((transaction) => {
+      const account = accounts.find((acc) => acc.id === transaction.account_id); // Find the account by ID
+      const accountName = account ? account.name : "Unknown Account"; // Fallback if account is not found
+      // console.log(`Mapping holding: ${holding.id}, accountName: ${accountName}`); // Debugging log
+      return { ...transaction, accountName }; // Add accountName to the holding
+    });
 
   const addAccount = async (addedAccount) => {
     console.log("new account:", addedAccount);   
@@ -145,6 +172,32 @@ export default function App() {
     }
   };
 
+  const addTransaction = async (addedtransaction) => { // HOLDINGS: Added
+    console.log("transaction to add:", addedtransaction)
+    if (!addedtransaction.account_id) {
+      console.error("Select an Account!");
+      return;
+    }
+    
+    try {
+      const createdTransaction = await client.models.Transactions.create({
+        account_id: addedtransaction.account_id,
+        type: addedtransaction.type,
+        xtn_date: addedtransaction.xtn_date,
+        amount: parseFloat(addedtransaction.amount),
+      });
+      const ctransaction = createdTransaction.data || createdTransaction
+      setTransactions((prevTransactions) => [...prevTransactions, ctransaction]);
+      if (selectedAccount) {
+        await handleViewTransactions(selectedAccount.id, selectedAccount.name);
+      } else {
+         fetchTransactions();
+      }
+    } catch (err) {
+      console.error("Error adding transaction:", err);
+    }
+  };
+
   const deleteAccount = async (id) => {
     try {
       const accountToDelete = accounts.find((account) => account.id === id);
@@ -181,6 +234,15 @@ export default function App() {
     }
   };
 
+  const deleteTransaction = async (id) => { // HOLDINGS: Added
+    try {
+      client.models.Transactions.delete({id});
+      setTransactions((prevTransactions) => prevTransactions.filter((transaction) => transaction.id !== id));
+    } catch (err) {
+      console.error("Error deleting Transaction:", err);
+    }
+  };
+  
   const updateAccount = async (updatedAccount) => {
     setIsUpdating(true);
     try {
@@ -230,6 +292,31 @@ export default function App() {
 
   const [selectedAccount, setSelectedAccount] = useState(null);
 
+  const handleViewTransactions = async (accountId, accountName) => {
+    try {
+      if (accountId === 'all' || accountId === null) {
+        setSelectedAccount(null);  // You can also reset it to { id: null, name: "All Holdings" } if you prefer
+      } else {
+        setSelectedAccount({ id: accountId, name: accountName });
+      }
+      //setActiveTab("Transactions");
+      openPage("Transactions");
+
+      const filter = accountId && accountId !== 'all' 
+      ? { account_id: { eq: accountId } } 
+      : {};  // No filter for "All Transactions"
+
+      // Filter Transactions by account ID
+      const { data } = await client.models.Transactions.list({
+        filter,
+      });
+
+      setTransactions(data);
+    } catch (err) {
+      console.error("Error filtering Transactions:", err);
+    }
+  };
+  
   const handleViewHoldings = async (accountId, accountName) => {
     try {
       if (accountId === 'all' || accountId === null) {
@@ -254,7 +341,7 @@ export default function App() {
       console.error("Error filtering holdings:", err);
     }
   };
-  
+
   const updateHolding = async (updatedHolding) => {
     setIsUpdatingHolding(true);
     try {
@@ -287,6 +374,38 @@ export default function App() {
       alert("Failed to update the holding. Please try again later.");
     } finally {
       setIsUpdatingHolding(false);
+    }
+  };
+
+  const updateTransaction = async (updatedTransaction) => {
+    setIsUpdatingTransaction(true);
+    try {
+      const updatedData = {
+        id: updatedTransaction.id,
+        account_id: updatedTransaction.account_id,
+        type: updatedTransaction.type,
+        xtn_date: updatedTransaction.xtn_date,
+        amount: parseFloat(updatedTransaction.amount), 
+      };
+
+      const result = await client.graphql({
+        query: updateTransactions,
+        variables: { input: updatedData },
+      });
+
+      setTransactions((prevTransactions) =>
+        prevTransactions.map((transaction) =>
+          transaction.id === result.data.updateTransactions.id
+            ? result.data.updateTransactions
+            : transaction
+        )
+      );
+      setEditingTransaction(null);
+    } catch (err) {
+      console.error("Error updating Transaction:", err);
+      alert("Failed to update the Transaction. Please try again later.");
+    } finally {
+      setIsUpdatingTransaction(false);
     }
   };
 
@@ -441,8 +560,48 @@ export default function App() {
       </div>
     
       <div id="Ledger" className={`tabcontent ${activeTab === 'Ledger' ? 'active' : ''}`}>
-        <h3>Ledger</h3>
-        <p>Get in touch, or swing by for a cup of coffee.</p>
+        <Flex key="ldg" direction="column" gap="1rem">
+          <Heading level={2}>Ledger</Heading>
+    
+            <SelectField
+              key="sctaccnt"
+              label="Select Account"
+              value={selectedAccount ? selectedAccount.id : 'all'}
+              onChange={(e) => {
+                const selectedAccountId = e.target.value;
+                const selectedAccountName = selectedAccountId === 'all' ? null : accounts.find(account => account.id === selectedAccountId)?.name;
+                handleViewTransactions(selectedAccountId, selectedAccountName);
+              }}
+            >
+              <option key="all" value="all">All Transactions</option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </SelectField>
+
+            <TransactionList 
+                key ="ldglst"
+                holdings={modifiedTransactions} 
+                deleteTransaction={deleteTransaction} 
+                setEditingTransaction={setEditingTransaction} 
+                tabColor={tabColor} 
+            />
+              
+          <Divider />
+
+          <TransactionForm 
+              editingTransaction={editingTransaction} 
+              setEditingTransaction={setEditingTransaction} 
+              isUpdatingTransaction={isUpdatingTransaction} 
+              updateTransaction={updateTransaction} 
+              addTransaction={addTransaction} 
+              selectedAccount={selectedAccount}
+              accounts={accounts}
+            />
+
+        </Flex>
       </div>
     
       <div id="About" className={`tabcontent ${activeTab === 'About' ? 'active' : ''}`}>

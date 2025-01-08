@@ -4,7 +4,7 @@ import { Button } from "@aws-amplify/ui-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 
-const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHoldings, tabColor }) => {
+const TransactionList = ({ Transactions, deleteTransaction, setEditingTransaction, tabColor }) => {
   // Define your custom theme
   const theme = createTheme({
     mixins: {
@@ -29,56 +29,43 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
           },
         },
       },
-    },
-  
+    },  
   });
-
+   
   const columns = [
-    { 
-      field: "id", 
-      headerName: "Hidden Column", 
-      hide: true,  // This makes the column invisible
-      flex: 1 
-    },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
-    { field: "type", headerName: "Type", flex: 1, minWidth: 75  },
-    { field: "birthdate", headerName: "Birthdate", flex: 1, minWidth: 100 },
-    { field: "min_withdrawal_date", headerName: "Min Withdrawal Date", flex: 1, minWidth: 100 },
-    { field: "starting_balance", headerName: "Starting Balance", flex: 1, type: "number", minWidth: 100 },
+    { field: "accountName", headerName: "Account Name", flex: 1, minWidth: 150 },
+    { field: "type", headerName: "Type", flex: 1, minWidth: 150 },
+    { field: "xtn_date", headerName: "Transaction Date", flex: 1, minWidth: 100 },
+    { field: "amount", headerName: "Amount", flex: 1, type: "number", minWidth: 100  },
     {
       field: "actions",
       headerName: "Actions",
       flex: 2,
       sortable: false,
       filterable: false,
-      minWidth: 350,
+      minWidth: 250,
       renderCell: (params) => (
         <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Button onClick={() => deleteAccount(params.row.id)}>Delete</Button>
-          <Button onClick={() => setEditingAccount(params.row)}>Edit</Button>
-          <Button onClick={() => handleViewHoldings(params.row.id, params.row.name)}>View Holdings</Button>
+          <Button onClick={() => deleteTransaction(params.row.id)}>Delete</Button>
+          <Button onClick={() => setEditingTransaction(params.row)}>Edit</Button>
         </div>
       ),
     },
   ];
-  const columnVisibilityModel = {
-    id: false, // Initially hidden
-  };
 
   return (
     <ThemeProvider theme={theme}>
       <div style={{ height: 500, width: "100%" }}>
         <DataGrid
-          rows={accounts}
+          rows={Transactions}
           columns={columns}
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableRowSelectionOnClick
-          columnVisibilityModel={columnVisibilityModel} // This controls visibility
         />
       </div>
     </ThemeProvider>
   );
 };
 
-export default AccountList;
+export default TransactionList;
