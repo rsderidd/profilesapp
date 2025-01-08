@@ -7,7 +7,7 @@ const TransactionForm = ({
     isUpdatingTransaction,
     updateTransaction,
     addTransaction,
-    selectedAccount,
+    selectedTransactionAccount,
     accounts
 }) => {
     const [newTransaction, setNewTransaction] = useState({
@@ -101,13 +101,13 @@ const TransactionForm = ({
               
               {/* Account ID Section */}
               {
-                selectedAccount && selectedAccount.name ? (
+                selectedTransactionAccount && selectedTransactionAccount.name ? (
                   
                   <div>
                   <label>Account</label>
-                  <div>{selectedAccount.name}</div> 
+                  <div>{selectedTransactionAccount.name}</div> 
                   {/* Set the account_id in newTransaction */}
-                  {newTransaction.account_id !== selectedAccount.id && setNewTransaction({...newTransaction, account_id: selectedAccount.id,})}
+                  {newTransaction.account_id !== selectedTransactionAccount.id && setNewTransaction({...newTransaction, account_id: selectedTransactionAccount.id,})}
                   </div>
                  
                 ) : (
@@ -145,7 +145,7 @@ const TransactionForm = ({
               placeholder="yyyy-mm-dd"                    
             />
             <TextField
-              label="Amount Paid"
+              label="Amount"
               type="number"
               value={newTransaction.amount}
               onChange={(e) =>
