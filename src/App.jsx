@@ -21,7 +21,6 @@ import AccountForm from './AccountForm';
 import HoldingForm from './HoldingForm';
 import TransactionList from "./TransactionList";
 import TransactionForm from './TransactionForm';
-import "./AccountOperations"
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
