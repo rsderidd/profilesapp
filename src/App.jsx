@@ -35,7 +35,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("Home");
   const { signOut } = useAuthenticator((context) => [context.user]);
   const [tabColor, setTabColor] = useState();
-  const [editingAccount, setEditingAccount] = useState(null); // Add editingAccount state
 
   useEffect(() => {
     fetchUserProfile();
@@ -68,9 +67,12 @@ export default function App() {
   }, []);
 
 
+  // ***********************************************************
   // *******************accounts 
+  // ***********************************************************
   const [isUpdating, setIsUpdating] = useState(false);
   const [accounts, setAccounts] = useState([]);
+  const [editingAccount, setEditingAccount] = useState(null); // Add editingAccount state
 
   const fetchAccounts = async () => {
     try {
@@ -171,7 +173,9 @@ export default function App() {
     }
   };
   
+  // ***********************************************************
   // *******************Holdings  
+  // ***********************************************************
   const [holdings, setHoldings] = useState([]);
   const [editingHolding, setEditingHolding] = useState(null);
   const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
@@ -295,7 +299,9 @@ export default function App() {
     }
   };
 
+  // ***********************************************************
   //  *******************Transactions
+  // ***********************************************************
   const [transactions, setTransactions] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
