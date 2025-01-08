@@ -75,6 +75,13 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
           rowsPerPageOptions={[5, 10, 20]}
           disableRowSelectionOnClick
           columnVisibilityModel={columnVisibilityModel} // This controls visibility
+          initialState={{
+            sorting: {
+              sortModel: [
+                { field: 'name', sort: 'asc' }, 
+              ],
+            },
+          }}
         />
       </div>
     </ThemeProvider>

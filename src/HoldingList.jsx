@@ -65,6 +65,13 @@ const HoldingList = ({ holdings, deleteHolding, setEditingHolding, tabColor }) =
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableRowSelectionOnClick
+          initialState={{
+            sorting: {
+              sortModel: [
+                 { field: 'name', sort: 'asc' }, 
+              ],
+            },
+          }}
         />
       </div>
     </ThemeProvider>

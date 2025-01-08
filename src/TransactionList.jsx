@@ -62,6 +62,13 @@ const TransactionList = ({ Transactions, deleteTransaction, setEditingTransactio
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableRowSelectionOnClick
+          initialState={{
+            sorting: {
+              sortModel: [
+                { field: 'xtn_date', sort: 'asc' }, // Sort by 'Transaction Date' in descending order
+              ],
+            },
+          }}
         />
       </div>
     </ThemeProvider>
