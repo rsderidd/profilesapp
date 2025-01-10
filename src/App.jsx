@@ -23,6 +23,7 @@ import TransactionList from "./TransactionList";
 import TransactionForm from './TransactionForm';
 import { useAccountOperations } from './accountOperations';
 import { useHoldingOperations } from './HoldingOperations';
+import { useTransactionOperations } from './TransactionOperations';
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
@@ -68,6 +69,10 @@ export default function App() {
     fetchHoldings();
     fetchTransactions();
   }, []);
+
+  // ***********************************************************
+  // *******************general  
+  // ***********************************************************
 
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [holdings, setHoldings] = useState([]);
@@ -146,28 +151,13 @@ export default function App() {
   });
 
   
-
- 
-
   // ***********************************************************
   //  *******************Transactions
   // ***********************************************************
   const [transactions, setTransactions] = useState([]);
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
   const [selectedTransactionAccount, setSelectedTransactionAccount] = useState(null);
 
-  const fetchTransactions = async () => { 
-    try {
-      const {data} = await  client.models.Transactions.list(); // Amplify.API.graphql({ query: listTransactions });
-      setSelectedTransactionAccount(null)
-      setTransactions(data);
-      // console.log(" fetched Transactions:", data);
-   } catch (err) {
-      console.error("Error fetching Transactions:", err);
-    }
-  };
-
+  
   // Map transactions with account names
   const modifiedTransactions = transactions.map((transaction) => {
     const account = accounts.find((acc) => acc.id === transaction.account_id); // Find the account by ID
@@ -176,41 +166,7 @@ export default function App() {
     return { ...transaction, accountName }; // Add accountName to the holding
   });
 
-  const addTransaction = async (addedtransaction) => { // HOLDINGS: Added
-    console.log("transaction to add:", addedtransaction)
-    if (!addedtransaction.account_id) {
-      console.error("Select an Account!");
-      return;
-    }
-    
-    try {
-      const createdTransaction = await client.models.Transactions.create({
-        account_id: addedtransaction.account_id,
-        type: addedtransaction.type,
-        xtn_date: addedtransaction.xtn_date,
-        amount: parseFloat(addedtransaction.amount),
-      });
-      const ctransaction = createdTransaction.data || createdTransaction
-      setTransactions((prevTransactions) => [...prevTransactions, ctransaction]);
-      if (selectedTransactionAccount) {
-        await handleViewTransactions(selectedTransactionAccount.id, selectedTransactionAccount.name);
-      } else {
-         fetchTransactions();
-      }
-    } catch (err) {
-      console.error("Error adding transaction:", err);
-    }
-  };
 
-  const deleteTransaction = async (id) => { // HOLDINGS: Added
-    try {
-      client.models.Transactions.delete({id});
-      setTransactions((prevTransactions) => prevTransactions.filter((transaction) => transaction.id !== id));
-    } catch (err) {
-      console.error("Error deleting Transaction:", err);
-    }
-  };
-  
   const handleViewTransactions = async (accountId, accountName) => {
     try {
       if (accountId === 'all' || accountId === null) {
@@ -236,38 +192,22 @@ export default function App() {
     }
   };
 
-  const updateTransaction = async (updatedTransaction) => {
-    setIsUpdatingTransaction(true);
-    try {
-      const updatedData = {
-        id: updatedTransaction.id,
-        account_id: updatedTransaction.account_id,
-        type: updatedTransaction.type,
-        xtn_date: updatedTransaction.xtn_date,
-        amount: parseFloat(updatedTransaction.amount), 
-      };
-
-      const result = await client.graphql({
-        query: updateTransactions,
-        variables: { input: updatedData },
-      });
-
-      setTransactions((prevTransactions) =>
-        prevTransactions.map((transaction) =>
-          transaction.id === result.data.updateTransactions.id
-            ? result.data.updateTransactions
-            : transaction
-        )
-      );
-      setEditingTransaction(null);
-    } catch (err) {
-      console.error("Error updating Transaction:", err);
-      alert("Failed to update the Transaction. Please try again later.");
-    } finally {
-      setIsUpdatingTransaction(false);
-    }
-  };
-  
+  const {
+    fetchTransactions,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    editingTransaction,
+    setEditingTransaction,
+    isUpdatingTransaction,
+  } = useTransactionOperations({
+    transactions,
+    setTransactions,
+    client,
+    setSelectedTransactionAccount,
+    selectedTransactionAccount,
+    handleViewTransactions
+  });
   
   return (
     <Flex
