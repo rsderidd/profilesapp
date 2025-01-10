@@ -22,6 +22,7 @@ import HoldingForm from './HoldingForm';
 import TransactionList from "./TransactionList";
 import TransactionForm from './TransactionForm';
 import { useAccountOperations } from './accountOperations';
+import { useHoldingOperations } from './HoldingOperations';
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
@@ -68,47 +69,72 @@ export default function App() {
     fetchTransactions();
   }, []);
 
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [holdings, setHoldings] = useState([]);
+
+  const handleViewHoldings = async (accountId, accountName) => {
+    try {
+      if (accountId === 'all' || accountId === null) {
+        setSelectedAccount(null);  // You can also reset it to { id: null, name: "All Holdings" } if you prefer
+      } else {
+        setSelectedAccount({ id: accountId, name: accountName });
+      }
+      //setActiveTab("Holdings");
+      openPage("Holdings");
+
+      const filter = accountId && accountId !== 'all' 
+      ? { account_id: { eq: accountId } } 
+      : {};  // No filter for "All Holdings"
+
+      // Filter holdings by account ID
+      const { data } = await client.models.Holdings.list({
+        filter,
+      });
+
+      setHoldings(data);
+    } catch (err) {
+      console.error("Error filtering holdings:", err);
+    }
+  };
   
   // ***********************************************************
   // *******************Holdings  
   // ***********************************************************
-  const [holdings, setHoldings] = useState([]);
-  const [editingHolding, setEditingHolding] = useState(null);
-  const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
 
-  const fetchHoldings = async () => { 
-    try {
-      const {data} = await  client.models.Holdings.list(); // Amplify.API.graphql({ query: listHoldings });
-      setSelectedAccount(null)
-      setHoldings(data);
-    } catch (err) {
-      console.error("Error fetching holdings:", err);
-    }
-  };
+  const {
+    fetchHoldings,
+    addHolding,
+    updateHolding,
+    deleteHolding,
+    editingHolding,
+    setEditingHolding,
+    isUpdatingHolding,
+  } = useHoldingOperations({
+    holdings,
+    setHoldings,
+    client,
+    setSelectedAccount, 
+    selectedAccount,
+    handleViewHoldings
+  });
 
     // ***********************************************************
   // *******************accounts 
   // ***********************************************************
   const [accounts, setAccounts] = useState([]);
-  const [selectedAccount, setSelectedAccount] = useState(null);
 
   const {
     fetchAccounts,
     addAccount,
     updateAccount,
     deleteAccount,
-    handleViewHoldings,
     editingAccount,
     setEditingAccount,
     isUpdating,
   } = useAccountOperations({
     accounts,
     setAccounts,
-    setHoldings,
-    openPage,
-    fetchHoldings,
     client,
-    setSelectedAccount
   });
 
   // Map holdings with account names
@@ -119,78 +145,9 @@ export default function App() {
     return { ...holding, accountName }; // Add accountName to the holding
   });
 
-  const addHolding = async (addedholding) => { // HOLDINGS: Added
-    console.log("holding to add:", addedholding)
-    if (!addedholding.account_id) {
-      console.error("Select an Account!");
-      return;
-    }
-    
-    try {
-      const createdHolding = await client.models.Holdings.create({
-        account_id: addedholding.account_id,
-        name: addedholding.name,
-        purchase_date: addedholding.purchase_date,
-        amount_paid: parseFloat(addedholding.amount_paid),
-        maturity_date: addedholding.maturity_date,
-        rate: parseFloat(addedholding.rate),
-        amount_at_maturity: parseFloat(addedholding.amount_at_maturity),
-      });
-      const cholding = createdHolding.data || createdHolding
-      setHoldings((prevHoldings) => [...prevHoldings, cholding]);
-      if (selectedAccount) {
-        await handleViewHoldings(selectedAccount.id, selectedAccount.name);
-      } else {
-         fetchHoldings();
-      }
-    } catch (err) {
-      console.error("Error adding holding:", err);
-    }
-  };
+  
 
-  const deleteHolding = async (id) => { // HOLDINGS: Added
-    try {
-      client.models.Holdings.delete({id});
-      setHoldings((prevHoldings) => prevHoldings.filter((holding) => holding.id !== id));
-    } catch (err) {
-      console.error("Error deleting holding:", err);
-    }
-  };
-
-  const updateHolding = async (updatedHolding) => {
-    setIsUpdatingHolding(true);
-    try {
-      const updatedData = {
-        id: updatedHolding.id,
-        account_id: updatedHolding.account_id,
-        name: updatedHolding.name,
-        purchase_date: updatedHolding.purchase_date,
-        amount_paid: parseFloat(updatedHolding.amount_paid),
-        maturity_date: updatedHolding.maturity_date,
-        rate: parseFloat(updatedHolding.rate),
-        amount_at_maturity: parseFloat(updatedHolding.amount_at_maturity),  
-      };
-
-      const result = await client.graphql({
-        query: updateHoldings,
-        variables: { input: updatedData },
-      });
-
-      setHoldings((prevHoldings) =>
-        prevHoldings.map((holding) =>
-          holding.id === result.data.updateHoldings.id
-            ? result.data.updateHoldings
-            : holding
-        )
-      );
-      setEditingHolding(null);
-    } catch (err) {
-      console.error("Error updating holding:", err);
-      alert("Failed to update the holding. Please try again later.");
-    } finally {
-      setIsUpdatingHolding(false);
-    }
-  };
+ 
 
   // ***********************************************************
   //  *******************Transactions

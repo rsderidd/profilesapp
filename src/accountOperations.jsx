@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createAccounts, deleteAccounts, updateAccounts, } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listAccounts, } from "../amplify/auth/post-confirmation/graphql/queries"; 
 
-export const useAccountOperations = ({ accounts, setAccounts, setHoldings, openPage, fetchHoldings, client, setSelectedAccount }) => {
+export const useAccountOperations = ({ accounts, setAccounts,  client,  }) => {
     const [editingAccount, setEditingAccount] = useState(null);
     const [isUpdating, setIsUpdating] = useState(false);
   
@@ -111,37 +111,12 @@ export const useAccountOperations = ({ accounts, setAccounts, setHoldings, openP
     }
   };
 
-  const handleViewHoldings = async (accountId, accountName) => {
-    try {
-      if (accountId === 'all' || accountId === null) {
-        setSelectedAccount(null);  // You can also reset it to { id: null, name: "All Holdings" } if you prefer
-      } else {
-        setSelectedAccount({ id: accountId, name: accountName });
-      }
-      //setActiveTab("Holdings");
-      openPage("Holdings");
-
-      const filter = accountId && accountId !== 'all' 
-      ? { account_id: { eq: accountId } } 
-      : {};  // No filter for "All Holdings"
-
-      // Filter holdings by account ID
-      const { data } = await client.models.Holdings.list({
-        filter,
-      });
-
-      setHoldings(data);
-    } catch (err) {
-      console.error("Error filtering holdings:", err);
-    }
-  };
 
   return {
     fetchAccounts,
     addAccount,
     updateAccount,
     deleteAccount,
-    handleViewHoldings,
     editingAccount,
     setEditingAccount,
     isUpdating,
