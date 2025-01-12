@@ -13,8 +13,6 @@ import "@aws-amplify/ui-react/styles.css";
 import { generateClient } from "aws-amplify/data";
 import outputs from "../amplify_outputs.json";
 import './App.css';
-import { createAccounts, createHoldings, deleteAccounts, deleteHoldings, updateAccounts, updateHoldings, updateTransactions, createTransactions } from "../amplify/auth/post-confirmation/graphql/mutations"; 
-import { listAccounts, listHoldings, listTransactions } from "../amplify/auth/post-confirmation/graphql/queries"; 
 import AccountList from "./AccountList";
 import HoldingList from "./HoldingList";
 import AccountForm from './AccountForm';
@@ -209,6 +207,11 @@ export default function App() {
     handleViewTransactions
   });
   
+  // ***********************************************************
+  //  ******************* MAIN LAYOUT
+  // ***********************************************************
+ 
+
   return (
     <Flex
       className="App"

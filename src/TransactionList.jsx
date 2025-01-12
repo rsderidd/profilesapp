@@ -53,6 +53,12 @@ const TransactionList = ({ Transactions, deleteTransaction, setEditingTransactio
     },
   ];
 
+  // Calculate total amount
+  const totalAmount = Transactions.reduce(
+    (sum, transaction) => sum + transaction.amount,
+    0
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <div style={{ height: 500, width: "100%" }}>
@@ -71,6 +77,22 @@ const TransactionList = ({ Transactions, deleteTransaction, setEditingTransactio
           }}
         />
       </div>
+      {/* Total Line */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0.5rem",
+          backgroundColor: "#f5f5f5",
+          borderTop: "1px solid #ccc",
+          marginTop: "-1px", // Optional to align with DataGrid border
+        }}
+      >
+        <strong>Total Transactions: {Transactions.length}</strong>
+        <strong>Total Amount: ${totalAmount.toFixed(2)}</strong>
+      </div>
+
     </ThemeProvider>
   );
 };
