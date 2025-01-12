@@ -10,9 +10,14 @@ export const useTransactionOperations = ({ transactions, setTransactions, client
     const fetchTransactions = async () => { 
         try {
           const {data} = await  client.models.Transactions.list(); // Amplify.API.graphql({ query: listTransactions });
+           // console.log(" fetched Transactions:", data);
+          const holdingsData = await client.models.Holdings.list(); // Replace with actual API or state call
+          const holdings = holdingsData?.data || [];
+          const generatedTransactions = generateHoldingTransactions(holdings);
+          const combinedTransactions = [...data, ...generatedTransactions];
           setSelectedTransactionAccount(null)
-          setTransactions(data);
-          // console.log(" fetched Transactions:", data);
+          setTransactions(combinedTransactions);
+      
        } catch (err) {
           console.error("Error fetching Transactions:", err);
         }
@@ -86,6 +91,27 @@ export const useTransactionOperations = ({ transactions, setTransactions, client
         }
     };
     
+    const generateHoldingTransactions = (holdings) => {
+      return holdings.flatMap((holding) => [
+        {
+          id: `purchase-${holding.id}`, // Unique ID for the purchase transaction
+          account_id: holding.account_id,
+          type: "Purchase",
+          xtn_date: holding.purchase_date, // Assuming `purchase_date` exists in holdings
+          amount: -holding.amount_paid, // Assuming `purchase_amount` exists
+          isGenerated: true,
+        },
+        {
+          id: `maturity-${holding.id}`, // Unique ID for the maturity transaction
+          account_id: holding.account_id,
+          type: "Maturity",
+          xtn_date: holding.maturity_date, // Assuming `maturity_date` exists in holdings
+          amount: holding.amount_at_maturity, // Assuming `maturity_amount` exists
+          isGenerated: true,
+        },
+      ]);
+    };
+
     return {
         fetchTransactions,
         addTransaction,

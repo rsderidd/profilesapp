@@ -68,6 +68,7 @@ export default function App() {
     fetchTransactions();
   }, []);
 
+  
   // ***********************************************************
   // *******************general  
   // ***********************************************************
@@ -155,7 +156,55 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [selectedTransactionAccount, setSelectedTransactionAccount] = useState(null);
 
+  const [dateFrom, setDateFrom] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  });
   
+  const [dateTo, setDateTo] = useState(() => {
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    nextYear.setMonth(11); // December
+    nextYear.setDate(31); // End of the year
+    return nextYear.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  });
+  
+  useEffect(() => {
+    const today = new Date();
+    const endOfNextYear = new Date(today.getFullYear() + 1, 11, 31);
+  
+    // Set default date range
+    setDateFrom(today.toISOString().split("T")[0]);
+    setDateTo(endOfNextYear.toISOString().split("T")[0]);
+  }, []);
+  
+  /*
+  useEffect(() => {
+    if (dateFrom && dateTo) {
+      handleViewTransactions(
+        selectedTransactionAccount?.id || 'all',
+        selectedTransactionAccount?.name || null
+      );
+    }
+  }, [dateFrom, dateTo]);
+*/
+
+  const [transactionFilterOption, setTransactionFilterOption] = useState('allTransactions'); // Default to 'All Transactions'
+
+  const handleFilterChange = (event) => {
+    setTransactionFilterOption(event.target.value);
+    
+    // Fetch transactions based on the selected filter
+    if (event.target.value === 'dateRange') {
+      handleViewTransactions(selectedTransactionAccount?.id, selectedTransactionAccount?.name);
+    } else {
+      // If 'All Transactions' is selected, clear the date filter
+      setDateFrom('');
+      setDateTo('');
+      handleViewTransactions(selectedTransactionAccount?.id, selectedTransactionAccount?.name);
+    }
+  };
+
   // Map transactions with account names
   const modifiedTransactions = transactions.map((transaction) => {
     const account = accounts.find((acc) => acc.id === transaction.account_id); // Find the account by ID
@@ -175,9 +224,12 @@ export default function App() {
       //setActiveTab("Transactions");
       openPage("Ledger");
 
-      const filter = accountId && accountId !== 'all' 
-      ? { account_id: { eq: accountId } } 
-      : {};  // No filter for "All Transactions"
+      let filter = { ...((accountId && accountId !== 'all') && { account_id: { eq: accountId } }) };
+
+      // Apply date range filter only if it's selected
+      if (transactionFilterOption === 'dateRange') {
+        filter = { ...filter, transaction_date: { between: [dateFrom, dateTo] } };
+      }
 
       // Filter Transactions by account ID
       const { data } = await client.models.Transactions.list({
@@ -206,6 +258,7 @@ export default function App() {
     selectedTransactionAccount,
     handleViewTransactions
   });
+
   
   // ***********************************************************
   //  ******************* MAIN LAYOUT
@@ -383,6 +436,57 @@ export default function App() {
                 </option>
               ))}
             </SelectField>
+
+            <div>
+              <input
+                type="radio"
+                id="allTransactions"
+                name="transactionFilter"
+                value="allTransactions"
+                checked={transactionFilterOption === 'allTransactions'}
+                onChange={handleFilterChange}
+              />
+              <label htmlFor="allTransactions">All Transactions</label>
+
+              <input
+                type="radio"
+                id="dateRange"
+                name="transactionFilter"
+                value="dateRange"
+                checked={transactionFilterOption === 'dateRange'}
+                onChange={handleFilterChange}
+              />
+              <label htmlFor="dateRange">Date Range</label>
+            </div>
+
+            {transactionFilterOption === 'dateRange' && (
+              <Flex gap="1rem">
+                <label>
+                  From:
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => {
+                      setDateFrom(e.target.value);
+                      handleViewTransactions(selectedTransactionAccount?.id, selectedTransactionAccount?.name);
+                    }}
+                  />
+                </label>
+
+                <label>
+                  To:
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => {
+                      setDateTo(e.target.value);
+                      handleViewTransactions(selectedTransactionAccount?.id, selectedTransactionAccount?.name);
+                    }}
+                  />
+                </label>
+              </Flex>
+            )}
+
 
             <TransactionList 
                 key ="ldglst"

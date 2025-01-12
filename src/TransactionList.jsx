@@ -44,12 +44,18 @@ const TransactionList = ({ Transactions, deleteTransaction, setEditingTransactio
       sortable: false,
       filterable: false,
       minWidth: 250,
-      renderCell: (params) => (
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Button onClick={() => deleteTransaction(params.row.id)}>Delete</Button>
-          <Button onClick={() => setEditingTransaction(params.row)}>Edit</Button>
-        </div>
-      ),
+      renderCell: (params) => {
+        if (params.row.isGenerated) {
+          // Hide buttons for generated transactions
+          return null;
+        }
+        return (
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <Button onClick={() => deleteTransaction(params.row.id)}>Delete</Button>
+            <Button onClick={() => setEditingTransaction(params.row)}>Edit</Button>
+          </div>
+        );
+      },
     },
   ];
 
