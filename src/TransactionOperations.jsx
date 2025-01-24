@@ -2,7 +2,20 @@ import { useState } from "react";
 import { updateTransactions, createTransactions } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listTransactions } from "../amplify/auth/post-confirmation/graphql/queries"; 
 
-export const useTransactionOperations = ({ transactions, setAllTransactions, setFilteredTransactions, client, setSelectedTransactionAccount, selectedTransactionAccount, handleViewTransactions, accounts }) => {
+export const useTransactionOperations = ({ 
+    transactions, 
+    setAllTransactions, 
+    setFilteredTransactions, 
+    client, 
+    setSelectedTransactionAccount, 
+    selectedTransactionAccount, 
+    handleViewTransactions, 
+    accounts,
+    transactionFilterOption,
+    isDateFilterApplied,
+    dateFrom,
+    dateTo
+}) => {
     const [editingTransaction, setEditingTransaction] = useState(null);
     const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
 
@@ -85,12 +98,21 @@ export const useTransactionOperations = ({ transactions, setAllTransactions, set
         }
     };
     
-    const deleteTransaction = async (id) => { // HOLDINGS: Added
+    const deleteTransaction = async (id) => {
         try {
-            client.models.Transactions.delete({id});
-            setAllTransactions((prevTransactions) => prevTransactions.filter((transaction) => transaction.id !== id));
+            await client.models.Transactions.delete({ id });
+            
+            // Update both allTransactions and filteredTransactions states
+            setAllTransactions(prevTransactions => 
+                prevTransactions.filter(transaction => transaction.id !== id)
+            );
+            
+            setFilteredTransactions(prevFiltered => 
+                prevFiltered.filter(transaction => transaction.id !== id)
+            );
         } catch (err) {
             console.error("Error deleting Transaction:", err);
+            alert("Failed to delete the Transaction. Please try again later.");
         }
     };
       
@@ -104,19 +126,63 @@ export const useTransactionOperations = ({ transactions, setAllTransactions, set
                 xtn_date: updatedTransaction.xtn_date,
                 amount: parseFloat(updatedTransaction.amount), 
             };
-    
+
             const result = await client.graphql({
                 query: updateTransactions,
                 variables: { input: updatedData },
             });
-    
-            setAllTransactions((prevTransactions) =>
-                prevTransactions.map((transaction) =>
-                    transaction.id === result.data.updateTransactions.id
-                        ? result.data.updateTransactions
+
+            const updatedTransactionData = result.data.updateTransactions;
+            
+            // Update allTransactions by replacing just the updated transaction
+            setAllTransactions(prevTransactions => 
+                prevTransactions.map(transaction =>
+                    transaction.id === updatedTransactionData.id
+                        ? updatedTransactionData
                         : transaction
                 )
             );
+            
+            // Re-apply current filters to show updated data
+            const filterCriteria = {
+                accountId: selectedTransactionAccount?.id !== 'all' ? selectedTransactionAccount?.id : null,
+                dateRange: transactionFilterOption === 'dateRange' && isDateFilterApplied
+                    ? { 
+                        from: dateFrom,
+                        to: dateTo
+                    }
+                    : null
+            };
+
+            // Update filteredTransactions by replacing just the updated transaction
+            setFilteredTransactions(prevFiltered => {
+                const shouldInclude = filterTransactions([updatedTransactionData], filterCriteria).length > 0;
+                
+                if (shouldInclude) {
+                    // Update or add the transaction
+                    const exists = prevFiltered.some(t => t.id === updatedTransactionData.id);
+                    if (exists) {
+                        return prevFiltered.map(transaction =>
+                            transaction.id === updatedTransactionData.id
+                                ? { 
+                                    ...updatedTransactionData,
+                                    accountName: accounts.find(acc => acc.id === updatedTransactionData.account_id)?.name || "Unknown Account"
+                                }
+                                : transaction
+                        );
+                    } else {
+                        // Add to filtered if it now matches criteria
+                        return [...prevFiltered, {
+                            ...updatedTransactionData,
+                            accountName: accounts.find(acc => acc.id === updatedTransactionData.account_id)?.name || "Unknown Account"
+                        }];
+                    }
+                } else {
+                    // Remove from filtered if it no longer matches criteria
+                    return prevFiltered.filter(t => t.id !== updatedTransactionData.id);
+                }
+            });
+
             setEditingTransaction(null);
         } catch (err) {
             console.error("Error updating Transaction:", err);

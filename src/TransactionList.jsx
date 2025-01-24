@@ -51,7 +51,11 @@ const TransactionList = ({ Transactions, deleteTransaction, setEditingTransactio
         }
         return (
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <Button onClick={() => deleteTransaction(params.row.id)}>Delete</Button>
+            <Button onClick={() => {
+              if (window.confirm('Are you sure you want to delete this transaction?')) {
+                deleteTransaction(params.row.id);
+              }
+            }}>Delete</Button>
             <Button onClick={() => setEditingTransaction(params.row)}>Edit</Button>
           </div>
         );

@@ -49,7 +49,11 @@ const HoldingList = ({ holdings, deleteHolding, setEditingHolding, tabColor }) =
       minWidth: 250,
       renderCell: (params) => (
         <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Button onClick={() => deleteHolding(params.row.id)}>Delete</Button>
+          <Button onClick={() => {
+            if (window.confirm('Are you sure you want to delete this holding? This will also delete any associated transactions.')) {
+              deleteHolding(params.row.id);
+            }
+          }}>Delete</Button>
           <Button onClick={() => setEditingHolding(params.row)}>Edit</Button>
         </div>
       ),

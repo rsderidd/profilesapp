@@ -54,7 +54,11 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
       minWidth: 350,
       renderCell: (params) => (
         <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Button onClick={() => deleteAccount(params.row.id)}>Delete</Button>
+          <Button onClick={() => {
+            if (window.confirm('Are you sure you want to delete this account? This will also delete all associated holdings and transactions.')) {
+              deleteAccount(params.row.id);
+            }
+          }}>Delete</Button>
           <Button onClick={() => setEditingAccount(params.row)}>Edit</Button>
           <Button onClick={() => handleViewHoldings(params.row.id, params.row.name)}>View Holdings</Button>
         </div>
