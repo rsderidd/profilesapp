@@ -13,8 +13,10 @@ export const useAccountOperations = ({ accounts, setAccounts,  client,  }) => {
     try {
       const { data } = await client.models.Accounts.list();
       setAccounts(data);
+      return data;
     } catch (err) {
       console.error("Error fetching accounts:", err);
+      return [];
     }
   };
 

@@ -36,7 +36,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("Home");
   const { signOut } = useAuthenticator((context) => [context.user]);
   const [tabColor, setTabColor] = useState();
-
+  const [accounts, setAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [holdings, setHoldings] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [selectedTransactionAccount, setSelectedTransactionAccount] = useState(null);
 
   useEffect(() => {
     fetchUserProfile();
@@ -63,18 +68,30 @@ export default function App() {
   
   
   useEffect(() => {
-    fetchAccounts();
-    fetchHoldings();
-    fetchTransactions();
-  }, []);
+    const initializeData = async () => {
+        try {
+            await fetchAccounts();
+            await fetchHoldings();
+        } catch (error) {
+            console.error('Error initializing data:', error);
+        }
+    };
+
+    initializeData();
+}, []);
+
+// Add new effect to handle transaction fetching
+useEffect(() => {
+    if (accounts.length > 0) {
+        fetchTransactions();
+    }
+}, [accounts]);
 
   
   // ***********************************************************
   // *******************general  
   // ***********************************************************
 
-  const [selectedAccount, setSelectedAccount] = useState(null);
-  const [holdings, setHoldings] = useState([]);
 
   const handleViewHoldings = async (accountId, accountName) => {
     try {
@@ -125,7 +142,6 @@ export default function App() {
     // ***********************************************************
   // *******************accounts 
   // ***********************************************************
-  const [accounts, setAccounts] = useState([]);
 
   const {
     fetchAccounts,
@@ -153,8 +169,6 @@ export default function App() {
   // ***********************************************************
   //  *******************Transactions
   // ***********************************************************
-  const [transactions, setTransactions] = useState([]);
-  const [selectedTransactionAccount, setSelectedTransactionAccount] = useState(null);
 
   const [dateFrom, setDateFrom] = useState(() => {
     const today = new Date();
@@ -206,39 +220,43 @@ export default function App() {
   };
 
   // Map transactions with account names
-  const modifiedTransactions = transactions.map((transaction) => {
+  const modifiedTransactions = allTransactions.map((transaction) => {
     const account = accounts.find((acc) => acc.id === transaction.account_id); // Find the account by ID
     const accountName = account ? account.name : "Unknown Account"; // Fallback if account is not found
     // console.log(`Mapping holding: ${holding.id}, accountName: ${accountName}`); // Debugging log
     return { ...transaction, accountName }; // Add accountName to the holding
   });
 
-
   const handleViewTransactions = async (accountId, accountName) => {
     try {
-      if (accountId === 'all' || accountId === null) {
-        setSelectedTransactionAccount(null);  // You can also reset it to { id: null, name: "All Holdings" } if you prefer
-      } else {
-        setSelectedTransactionAccount({ id: accountId, name: accountName });
-      }
-      //setActiveTab("Transactions");
-      openPage("Ledger");
+        setSelectedTransactionAccount(
+            accountId === 'all' || accountId === null
+                ? null
+                : { id: accountId, name: accountName }
+        );
+        
+        openPage("Ledger");
 
-      let filter = { ...((accountId && accountId !== 'all') && { account_id: { eq: accountId } }) };
+        const filterCriteria = {
+            accountId: accountId !== 'all' ? accountId : null,
+            dateRange: transactionFilterOption === 'dateRange'
+                ? { from: dateFrom, to: dateTo }
+                : null
+        };
 
-      // Apply date range filter only if it's selected
-      if (transactionFilterOption === 'dateRange') {
-        filter = { ...filter, transaction_date: { between: [dateFrom, dateTo] } };
-      }
+        // First filter the transactions
+        const filtered = filterTransactions(allTransactions, filterCriteria);
+        
+        // Then add account names to the filtered transactions
+        const filteredWithAccounts = filtered.map((transaction) => {
+            const account = accounts.find((acc) => acc.id === transaction.account_id);
+            const accountName = account ? account.name : "Unknown Account";
+            return { ...transaction, accountName };
+        });
 
-      // Filter Transactions by account ID
-      const { data } = await client.models.Transactions.list({
-        filter,
-      });
-
-      setTransactions(data);
+        setFilteredTransactions(filteredWithAccounts);
     } catch (err) {
-      console.error("Error filtering Transactions:", err);
+        console.error("Error filtering Transactions:", err);
     }
   };
 
@@ -250,13 +268,16 @@ export default function App() {
     editingTransaction,
     setEditingTransaction,
     isUpdatingTransaction,
+    filterTransactions
   } = useTransactionOperations({
-    transactions,
-    setTransactions,
+    allTransactions,
+    setAllTransactions,
+    setFilteredTransactions,
     client,
     setSelectedTransactionAccount,
     selectedTransactionAccount,
-    handleViewTransactions
+    handleViewTransactions,
+    accounts
   });
 
   
@@ -489,8 +510,8 @@ export default function App() {
 
 
             <TransactionList 
-                key ="ldglst"
-                Transactions={modifiedTransactions} 
+                key="ldglst"
+                Transactions={filteredTransactions}
                 deleteTransaction={deleteTransaction} 
                 setEditingTransaction={setEditingTransaction} 
                 tabColor={tabColor} 
