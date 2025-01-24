@@ -32,6 +32,7 @@ export const useTransactionOperations = ({ transactions, setAllTransactions, set
     // New helper function to filter transactions
     const filterTransactions = (transactions, criteria) => {
         if (!transactions) return [];
+        
         return transactions.filter(transaction => {
             // Account filter
             if (criteria.accountId && transaction.account_id !== criteria.accountId) {
@@ -40,11 +41,16 @@ export const useTransactionOperations = ({ transactions, setAllTransactions, set
             
             // Date range filter
             if (criteria.dateRange?.from && criteria.dateRange?.to) {
-                const transactionDate = new Date(transaction.xtn_date);
-                const fromDate = new Date(criteria.dateRange.from);
-                const toDate = new Date(criteria.dateRange.to);
-                
-                if (transactionDate < fromDate || transactionDate > toDate) {
+                try {
+                    // Parse dates without time components to avoid timezone issues
+                    const transactionDate = transaction.xtn_date.split('T')[0];
+                    const fromDate = criteria.dateRange.from;
+                    const toDate = criteria.dateRange.to;
+                    
+                    // Compare date strings directly (YYYY-MM-DD format)
+                    return transactionDate >= fromDate && transactionDate <= toDate;
+                } catch (err) {
+                    console.error('Error comparing dates:', err);
                     return false;
                 }
             }
