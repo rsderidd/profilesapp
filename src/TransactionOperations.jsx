@@ -19,26 +19,41 @@ export const useTransactionOperations = ({
     const [editingTransaction, setEditingTransaction] = useState(null);
     const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
 
-    const fetchTransactions = async () => { 
+    const fetchTransactions = async () => {
         try {
-            const {data} = await client.models.Transactions.list();
+            const transactionsData = await client.models.Transactions.list();
             const holdingsData = await client.models.Holdings.list();
-            const holdings = holdingsData?.data || [];
-            const generatedTransactions = generateHoldingTransactions(holdings);
-            const combinedTransactions = [...data, ...generatedTransactions];
             
-            // Add account names to transactions
-            const transactionsWithAccounts = combinedTransactions.map((transaction) => {
+            const regularTransactions = transactionsData.data || [];
+            const holdings = holdingsData.data || [];
+            
+            // Use new function to generate all synthetic transactions
+            const generatedTransactions = generateAllTransactions(holdings, accounts, regularTransactions);
+            
+            const allTransactions = [...regularTransactions, ...generatedTransactions];
+            setAllTransactions(allTransactions);
+            
+            // Apply any current filters
+            const filterCriteria = {
+                accountId: selectedTransactionAccount?.id !== 'all' ? selectedTransactionAccount?.id : null,
+                dateRange: transactionFilterOption === 'dateRange' && isDateFilterApplied
+                    ? { 
+                        from: dateFrom,
+                        to: dateTo
+                    }
+                    : null
+            };
+
+            const filtered = filterTransactions(allTransactions, filterCriteria);
+            const filteredWithAccounts = filtered.map((transaction) => {
                 const account = accounts.find((acc) => acc.id === transaction.account_id);
                 const accountName = account ? account.name : "Unknown Account";
                 return { ...transaction, accountName };
             });
-            
-            setSelectedTransactionAccount(null);
-            setAllTransactions(transactionsWithAccounts);
-            setFilteredTransactions(transactionsWithAccounts);
+
+            setFilteredTransactions(filteredWithAccounts);
         } catch (err) {
-            console.error("Error fetching Transactions:", err);
+            console.error("Error fetching transactions:", err);
         }
     };
 
@@ -211,6 +226,45 @@ export const useTransactionOperations = ({
                 isGenerated: true,
             },
         ]);
+    };
+
+    const generateAllTransactions = (holdings, accounts, existingTransactions) => {
+        // First, generate holding transactions as before
+        const holdingTransactions = generateHoldingTransactions(holdings);
+        
+        // Generate starting balance transactions
+        const startingBalanceTransactions = accounts.map(account => {
+            // Find the earliest transaction date for this account, including holdings transactions
+            const accountTransactions = [
+                ...existingTransactions.filter(t => t.account_id === account.id),
+                ...holdingTransactions.filter(t => t.account_id === account.id)
+            ];
+            
+            let earliestDate = new Date();
+            
+            if (accountTransactions.length > 0) {
+                earliestDate = new Date(Math.min(...accountTransactions.map(t => 
+                    new Date(t.xtn_date).getTime()
+                )));
+                // Set to one day before the earliest transaction
+                earliestDate.setDate(earliestDate.getDate() - 1);
+            } else {
+                // If no transactions, use account creation date or today
+                earliestDate = new Date();
+            }
+
+            return {
+                id: `sb-${account.id}`, // Unique ID for starting balance transaction
+                account_id: account.id,
+                type: 'Starting Balance',
+                xtn_date: earliestDate.toISOString().split('T')[0],
+                amount: parseFloat(account.starting_balance || 0),
+                isGenerated: true
+            };
+        }).filter(t => t.amount !== 0); // Only include accounts with non-zero starting balance
+
+        // Combine both types of generated transactions
+        return [...holdingTransactions, ...startingBalanceTransactions];
     };
 
     return {

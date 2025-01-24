@@ -303,25 +303,32 @@ useEffect(() => {
     }
   };
 
-  const {
-    fetchTransactions,
-    addTransaction,
-    updateTransaction,
-    deleteTransaction,
-    editingTransaction,
-    setEditingTransaction,
-    isUpdatingTransaction,
-    filterTransactions
-  } = useTransactionOperations({
-    allTransactions,
+  const transactionOperations = useTransactionOperations({
+    transactions: allTransactions,
     setAllTransactions,
     setFilteredTransactions,
     client,
     setSelectedTransactionAccount,
     selectedTransactionAccount,
     handleViewTransactions,
-    accounts
+    accounts,
+    transactionFilterOption,
+    isDateFilterApplied,
+    dateFrom,
+    dateTo
   });
+
+  // Destructure deleteTransaction from the hook
+  const { 
+    editingTransaction, 
+    setEditingTransaction, 
+    isUpdatingTransaction, 
+    fetchTransactions, 
+    filterTransactions, 
+    addTransaction, 
+    deleteTransaction,  // Add this
+    updateTransaction 
+  } = transactionOperations;
 
   
   // ***********************************************************
@@ -550,10 +557,10 @@ useEffect(() => {
 
             <TransactionList 
                 key="ldglst"
-                Transactions={filteredTransactions}
-                deleteTransaction={deleteTransaction} 
-                setEditingTransaction={setEditingTransaction} 
-                tabColor={tabColor} 
+                transactions={filteredTransactions}
+                deleteTransaction={deleteTransaction}
+                setEditingTransaction={setEditingTransaction}
+                tabColor={tabColor}
             />
               
           <Divider />
