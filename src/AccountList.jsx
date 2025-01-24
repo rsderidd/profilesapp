@@ -2,9 +2,28 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button } from "@aws-amplify/ui-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useMemo } from "react";
 
 
-const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHoldings, tabColor }) => {
+const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHoldings, handleViewTransactions, tabColor, transactions = [] }) => {
+  // Calculate current balance for each account
+  const balances = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];  // Get today's date in YYYY-MM-DD format
+    
+    return transactions
+      .filter(transaction => transaction.xtn_date <= today)  // Only include transactions up to today
+      .reduce((acc, transaction) => {
+        const amount = typeof transaction.amount === 'string' 
+          ? parseFloat(transaction.amount) 
+          : transaction.amount;
+
+        if (!isNaN(amount)) {
+          acc[transaction.account_id] = (acc[transaction.account_id] || 0) + amount;
+        }
+        return acc;
+      }, {});
+  }, [transactions]);
+
   // Define your custom theme
   const theme = createTheme({
     mixins: {
@@ -40,11 +59,42 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
       hide: true,  // This makes the column invisible
       flex: 1 
     },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
-    { field: "type", headerName: "Type", flex: 1, minWidth: 75  },
+    { 
+      field: "name", 
+      headerName: "Name", 
+      flex: 1, 
+      minWidth: 150,
+      renderCell: (params) => (
+        <div
+          style={{ 
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            color: 'blue'
+          }}
+          onClick={() => handleViewTransactions(params.row.id, params.row.name)}
+        >
+          {params.value}
+        </div>
+      )
+    },
+    { field: "type", headerName: "Type", flex: 1, minWidth: 75 },
     { field: "birthdate", headerName: "Birthdate", flex: 1, minWidth: 100 },
     { field: "min_withdrawal_date", headerName: "Min Withdrawal Date", flex: 1, minWidth: 100 },
     { field: "starting_balance", headerName: "Starting Balance", flex: 1, type: "number", minWidth: 100 },
+    { 
+      field: "currentBalance", 
+      headerName: "Current Balance", 
+      flex: 1, 
+      minWidth: 100,
+      type: 'number',
+      renderCell: (params) => {
+        const balance = balances[params.row.id] || 0;
+        return balance.toLocaleString('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        });
+      }
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -78,7 +128,8 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableRowSelectionOnClick
-          columnVisibilityModel={columnVisibilityModel} // This controls visibility
+          columnVisibilityModel={columnVisibilityModel}
+          getRowId={(row) => row.id}
           initialState={{
             sorting: {
               sortModel: [

@@ -420,7 +420,9 @@ useEffect(() => {
               deleteAccount={deleteAccount} 
               setEditingAccount={setEditingAccount} 
               handleViewHoldings={handleViewHoldings}
-              tabColor={tabColor} 
+              handleViewTransactions={handleViewTransactions}
+              tabColor={tabColor}
+              transactions={allTransactions}
             />
             <AccountForm 
               editingAccount={editingAccount} 
