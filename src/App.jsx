@@ -6,6 +6,7 @@ import {
   View,
   Divider,
   SelectField,
+  TextField,
 } from "@aws-amplify/ui-react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
@@ -43,6 +44,7 @@ export default function App() {
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [selectedTransactionAccount, setSelectedTransactionAccount] = useState(null);
   const [isDateFilterApplied, setIsDateFilterApplied] = useState(false);
+  const [futurePayments, setFuturePayments] = useState(1); // Default to 1
 
   useEffect(() => {
     fetchUserProfile();
@@ -315,7 +317,9 @@ useEffect(() => {
     transactionFilterOption,
     isDateFilterApplied,
     dateFrom,
-    dateTo
+    dateTo,
+    futurePayments,
+    holdings
   });
 
   // Destructure deleteTransaction from the hook
@@ -556,6 +560,22 @@ useEffect(() => {
                 <Button onClick={handleApplyDateFilter}>Apply Date Filter</Button>
               </Flex>
             )}
+
+            <div style={{ marginTop: '1rem' }}>
+              <label style={{ marginRight: '1rem' }}>
+                Future Minimum Payments:
+                <input
+                  type="number"
+                  min="0"
+                  value={futurePayments}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 1; // Ensure at least 1
+                    setFuturePayments(value);
+                  }}
+                  style={{ marginLeft: '0.5rem', width: '60px' }}
+                />
+              </label>
+            </div>
 
             <TransactionList 
                 transactions={filteredTransactions}

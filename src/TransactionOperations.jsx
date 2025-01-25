@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { updateTransactions, createTransactions } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listTransactions } from "../amplify/auth/post-confirmation/graphql/queries"; 
 
@@ -14,7 +14,9 @@ export const useTransactionOperations = ({
     transactionFilterOption,
     isDateFilterApplied,
     dateFrom,
-    dateTo
+    dateTo,
+    futurePayments,
+    holdings
 }) => {
     const [editingTransaction, setEditingTransaction] = useState(null);
     const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
@@ -228,44 +230,59 @@ export const useTransactionOperations = ({
         ]);
     };
 
-    const generateAllTransactions = (holdings, accounts, existingTransactions) => {
-        // First, generate holding transactions as before
-        const holdingTransactions = generateHoldingTransactions(holdings);
-        
-        // Generate starting balance transactions
-        const startingBalanceTransactions = accounts.map(account => {
-            // Find the earliest transaction date for this account, including holdings transactions
-            const accountTransactions = [
-                ...existingTransactions.filter(t => t.account_id === account.id),
-                ...holdingTransactions.filter(t => t.account_id === account.id)
-            ];
-            
-            let earliestDate = new Date();
-            
-            if (accountTransactions.length > 0) {
-                earliestDate = new Date(Math.min(...accountTransactions.map(t => 
-                    new Date(t.xtn_date).getTime()
-                )));
-                // Set to one day before the earliest transaction
-                earliestDate.setDate(earliestDate.getDate() - 1);
-            } else {
-                // If no transactions, use account creation date or today
-                earliestDate = new Date();
+    const generateAllTransactions = useCallback(() => {
+        let generatedTransactions = [];
+
+        // Keep existing generation logic
+        accounts.forEach(account => {
+            if (account.starting_balance) {
+                generatedTransactions.push({
+                    id: `starting-${account.id}`,
+                    account_id: account.id,
+                    type: 'Starting Balance',
+                    xtn_date: '1900-01-01',
+                    amount: parseFloat(account.starting_balance || 0),
+                    isGenerated: true
+                });
             }
+        });
 
-            return {
-                id: `sb-${account.id}`, // Unique ID for starting balance transaction
-                account_id: account.id,
-                type: 'Starting Balance',
-                xtn_date: earliestDate.toISOString().split('T')[0],
-                amount: parseFloat(account.starting_balance || 0),
-                isGenerated: true
-            };
-        }).filter(t => t.amount !== 0); // Only include accounts with non-zero starting balance
+        // Generate holding transactions
+        const holdingTransactions = generateHoldingTransactions(holdings);
+        generatedTransactions = [...generatedTransactions, ...holdingTransactions];
 
-        // Combine both types of generated transactions
-        return [...holdingTransactions, ...startingBalanceTransactions];
-    };
+        // Add future minimum payments
+        if (futurePayments > 0) {
+            const today = new Date();
+            
+            accounts.forEach(account => {
+                if (!account.min_withdrawal_date) return;
+                
+                const [, month, day] = account.min_withdrawal_date.split('-');
+                
+                for (let i = 0; i < futurePayments; i++) {
+                    const year = today.getFullYear() + (i + (today > new Date(today.getFullYear(), month - 1, day) ? 1 : 0));
+                    const date = `${year}-${month}-${day}`;
+                    
+                    generatedTransactions.push({
+                        id: `future-${account.id}-${i}`,
+                        account_id: account.id,
+                        type: 'Minimum Payment',
+                        xtn_date: date,
+                        amount: -10,  // Adjust this amount as needed
+                        isGenerated: true
+                    });
+                }
+            });
+        }
+
+        // Combine all transactions and sort
+        const allTransactions = [...transactions, ...generatedTransactions]
+            .sort((a, b) => a.xtn_date.localeCompare(b.xtn_date));
+        
+        setAllTransactions(allTransactions);
+        return allTransactions;
+    }, [transactions, accounts, futurePayments, setAllTransactions]);
 
     return {
         editingTransaction,
