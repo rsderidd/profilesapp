@@ -4,27 +4,36 @@ import { Button } from "@aws-amplify/ui-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 
-const TransactionList = ({ transactions, deleteTransaction, setEditingTransaction, tabColor }) => {
-  // Calculate running totals for each account
-  const calculateRunningTotals = (transactions) => {
-    // Create a copy of the transactions array
-    const sortedTransactions = [...transactions].sort((a, b) => 
-      new Date(a.xtn_date) - new Date(b.xtn_date)
-    );
+const TransactionList = ({ transactions, deleteTransaction, setEditingTransaction, tabColor, allTransactions }) => {
+  // Calculate running totals for each account using ALL transactions
+  const calculateRunningTotals = (displayTransactions, allTransactions) => {
+    // First sort all transactions by date and then by ID to handle same-date transactions
+    const sortedAllTransactions = [...allTransactions].sort((a, b) => {
+      const dateCompare = new Date(a.xtn_date) - new Date(b.xtn_date);
+      return dateCompare !== 0 ? dateCompare : a.id.localeCompare(b.id);
+    });
 
     // Create a map to store running totals for each account
     const accountTotals = {};
 
-    // Calculate running totals
-    return sortedTransactions.map(transaction => ({
+    // Create a map of running totals at each transaction for each account
+    const runningTotalsByKey = {};
+    sortedAllTransactions.forEach(transaction => {
+      const accountId = transaction.account_id;
+      accountTotals[accountId] = (accountTotals[accountId] || 0) + parseFloat(transaction.amount || 0);
+      // Use both date and ID as key to handle same-date transactions
+      runningTotalsByKey[`${accountId}-${transaction.xtn_date}-${transaction.id}`] = accountTotals[accountId];
+    });
+
+    // Map the running totals to the displayed transactions
+    return displayTransactions.map(transaction => ({
       ...transaction,
-      runningTotal: (accountTotals[transaction.account_id] = 
-        (accountTotals[transaction.account_id] || 0) + parseFloat(transaction.amount || 0))
+      runningTotal: runningTotalsByKey[`${transaction.account_id}-${transaction.xtn_date}-${transaction.id}`] || 0
     }));
   };
 
   // Add running totals to transactions
-  const transactionsWithTotals = calculateRunningTotals(transactions);
+  const transactionsWithTotals = calculateRunningTotals(transactions, allTransactions);
 
   const theme = createTheme({
     mixins: {
@@ -113,18 +122,23 @@ const TransactionList = ({ transactions, deleteTransaction, setEditingTransactio
   ];
 
   return (
-    <div style={{ height: 400, width: '100%' }}>
-      <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
+      <div style={{ height: 500, width: "100%" }}>
         <DataGrid
           rows={transactionsWithTotals}
           columns={columns}
           pageSize={5}
-          rowsPerPageOptions={[5]}
-          disableSelectionOnClick
+          rowsPerPageOptions={[5, 10, 20]}
+          disableRowSelectionOnClick
           getRowId={(row) => row.id}
+          initialState={{
+            sorting: {
+              sortModel: [{ field: 'xtn_date', sort: 'asc' }],
+            },
+          }}
         />
-      </ThemeProvider>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 };
 

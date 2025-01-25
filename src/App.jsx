@@ -558,8 +558,8 @@ useEffect(() => {
             )}
 
             <TransactionList 
-                key="ldglst"
                 transactions={filteredTransactions}
+                allTransactions={allTransactions}
                 deleteTransaction={deleteTransaction}
                 setEditingTransaction={setEditingTransaction}
                 tabColor={tabColor}
