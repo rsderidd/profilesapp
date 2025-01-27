@@ -26,15 +26,38 @@ export const useTransactionOperations = ({
     const generateAllTransactions = useCallback((regularTransactions = transactions) => {
         let allGeneratedTransactions = [];
 
-        // 1. Generate starting balances
+        // 1. Generate starting balances with correct dates
         accounts?.forEach(account => {
             if (account.starting_balance) {
+                // Find earliest transaction date for this account, including ALL dates even if they seem invalid
+                const accountTransactions = [
+                    ...(regularTransactions?.filter(t => t.account_id === account.id) || []),
+                    ...(holdings?.filter(h => h.account_id === account.id).map(h => ({ 
+                        xtn_date: h.purchase_date 
+                    })) || []),
+                    ...(holdings?.filter(h => h.account_id === account.id && h.maturity_date).map(h => ({ 
+                        xtn_date: h.maturity_date 
+                    })) || [])
+                ].filter(t => t.xtn_date);
+
+                let startDate = '1900-01-01';
+                if (accountTransactions.length > 0) {
+                    try {
+                        // Don't filter dates - use all of them to find the earliest
+                        const earliestDate = new Date(Math.min(...accountTransactions.map(t => new Date(t.xtn_date))));
+                        earliestDate.setDate(earliestDate.getDate() - 1);
+                        startDate = earliestDate.toISOString().split('T')[0];
+                    } catch (err) {
+                        console.error('Error calculating start date:', err);
+                    }
+                }
+
                 allGeneratedTransactions.push({
                     id: `starting-${account.id}`,
                     account_id: account.id,
                     accountName: account.name,
                     type: 'Starting Balance',
-                    xtn_date: '1900-01-01',
+                    xtn_date: startDate,
                     amount: parseFloat(account.starting_balance || 0),
                     isGenerated: true
                 });
@@ -46,21 +69,30 @@ export const useTransactionOperations = ({
             holdings.forEach(holding => {
                 const accountName = accounts.find(acc => acc.id === holding.account_id)?.name || "Unknown Account";
                 
-                allGeneratedTransactions.push({
-                    id: `holding-${holding.id}`,
-                    account_id: holding.account_id,
-                    accountName,
-                    type: 'Holding Purchase',
-                    xtn_date: holding.purchase_date,
-                    amount: -parseFloat(holding.amount_paid || 0),
-                    isGenerated: true
-                });
+                // Validate dates
+                const purchaseDate = new Date(holding.purchase_date);
+                const maturityDate = holding.maturity_date ? new Date(holding.maturity_date) : null;
+                
+                // Only add transactions with valid dates
+                if (!isNaN(purchaseDate.getTime())) {
+                    allGeneratedTransactions.push({
+                        id: `holding-${holding.id}`,
+                        account_id: holding.account_id,
+                        accountName,
+                        holdingName: holding.name || `${holding.amount_paid} @ ${holding.interest_rate}%`,
+                        type: 'Holding Purchase',
+                        xtn_date: holding.purchase_date,
+                        amount: -parseFloat(holding.amount_paid || 0),
+                        isGenerated: true
+                    });
+                }
 
-                if (holding.maturity_date) {
+                if (maturityDate && !isNaN(maturityDate.getTime())) {
                     allGeneratedTransactions.push({
                         id: `maturity-${holding.id}`,
                         account_id: holding.account_id,
                         accountName,
+                        holdingName: holding.name || `${holding.amount_paid} @ ${holding.interest_rate}%`,
                         type: 'Holding Maturity',
                         xtn_date: holding.maturity_date,
                         amount: parseFloat(holding.amount_at_maturity || 0),

@@ -64,6 +64,19 @@ const TransactionList = ({ transactions, deleteTransaction, setEditingTransactio
   const columns = [
     { field: "accountName", headerName: "Account Name", flex: 1, minWidth: 150 },
     { field: "type", headerName: "Type", flex: 1, minWidth: 150 },
+    { 
+        field: "holdingName", 
+        headerName: "Holding Name", 
+        flex: 1, 
+        minWidth: 150,
+        renderCell: (params) => {
+            if (!params.row) return '';
+            if (params.row.type === 'Holding Purchase' || params.row.type === 'Holding Maturity') {
+                return params.row.holdingName || 'Unknown Holding';
+            }
+            return '';
+        }
+    },
     { field: "xtn_date", headerName: "Transaction Date", flex: 1, minWidth: 100 },
     { 
       field: "amount", 
