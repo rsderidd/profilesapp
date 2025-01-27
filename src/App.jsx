@@ -79,16 +79,8 @@ export default function App() {
             console.error('Error initializing data:', error);
         }
     };
-
     initializeData();
 }, []);
-
-// Add new effect to handle transaction fetching
-useEffect(() => {
-    if (accounts.length > 0) {
-        fetchTransactions();
-    }
-}, [accounts]);
 
   
   // ***********************************************************
