@@ -22,24 +22,33 @@ const AccountForm = ({
   // If editingAccount is passed from parent, initialize state with editingAccount values
   useEffect(() => {
     if (editingAccount) {
-      setEditing(true);
-      setNewAccount({
-        id: editingAccount.id,
-        name: editingAccount.name,
-        type: editingAccount.type,
-        birthdate: editingAccount.birthdate,
-        min_withdrawal_date: editingAccount.min_withdrawal_date,
-        starting_balance: editingAccount.starting_balance
-      });
+        setEditing(true);
+        // Format the min_withdrawal_date correctly when loading into form
+        let formattedDate = '';
+        if (editingAccount.min_withdrawal_date) {
+            const date = new Date(editingAccount.min_withdrawal_date);
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            formattedDate = `${month}-${day}`;
+        }
+
+        setNewAccount({
+            id: editingAccount.id,
+            name: editingAccount.name,
+            type: editingAccount.type,
+            birthdate: editingAccount.birthdate,
+            min_withdrawal_date: formattedDate,
+            starting_balance: editingAccount.starting_balance
+        });
     } else {
-      setEditing(false);
-      setNewAccount({
-        name: '',
-        type: '',
-        birthdate: '',
-        min_withdrawal_date: '',
-        starting_balance: ''
-      });
+        setEditing(false);
+        setNewAccount({
+            name: '',
+            type: '',
+            birthdate: '',
+            min_withdrawal_date: '',
+            starting_balance: ''
+        });
     }
   }, [editingAccount]);
 
@@ -55,14 +64,19 @@ const AccountForm = ({
   };
 
   const handleUpdateAccount = () => {
-    updateAccount(newAccount);
+    // Save the min_withdrawal_date without the year
+    const updatedData = {
+        ...newAccount,
+        min_withdrawal_date: newAccount.min_withdrawal_date || '' // No dummy year
+    };
+    updateAccount(updatedData);
     setEditingAccount(null); // Clear the editing state
     setNewAccount({
-      name: '',
-      type: '',
-      birthdate: '',
-      min_withdrawal_date: '',
-      starting_balance: ''
+        name: '',
+        type: '',
+        birthdate: '',
+        min_withdrawal_date: '',
+        starting_balance: ''
     });
   };
 
@@ -89,7 +103,7 @@ const AccountForm = ({
   };
 
   const handleCancel = () => {
-    setEditing(false)
+    setEditing(false);
     setEditingAccount(null); // Clear the editing state
     setNewAccount({
       name: '',
@@ -138,11 +152,11 @@ const AccountForm = ({
       />
 
       <TextField
-        label="Min Withdrawal Date (yyyy-mm-dd)"
+        label="Min Withdrawal Date (MM-DD)"
         value={newAccount.min_withdrawal_date}
         onChange={(e) => handleDateChange("min_withdrawal_date", e.target.value)}
-        maxLength={10}  // Limit input to 10 characters (yyyy-mm-dd)
-        placeholder="yyyy-mm-dd"
+        maxLength={5}  // Limit input to 5 characters (MM-DD)
+        placeholder="MM-DD"
       />
 
       <TextField

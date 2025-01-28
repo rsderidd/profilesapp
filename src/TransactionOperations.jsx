@@ -102,7 +102,45 @@ export const useTransactionOperations = ({
             });
         }
 
-        // 3. Combine all transactions
+        // 3. Generate future minimum withdrawals
+        accounts?.forEach(account => {
+            if (account.min_withdrawal_date) {
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                
+                // The date is stored as YYYY-MM-DD in database
+                const dbDate = new Date(account.min_withdrawal_date);
+                const month = dbDate.getMonth(); // getMonth() returns 0-11
+                const day = dbDate.getDate();
+                
+                // Calculate first withdrawal date for this year
+                let withdrawalDate = new Date(currentYear, month, day);
+                
+                // If this year's date has passed, start from next year
+                if (withdrawalDate < today) {
+                    withdrawalDate = new Date(currentYear + 1, month, day);
+                }
+
+                // Generate transactions for the specified number of future years
+                for (let i = 0; i < futurePayments; i++) {
+                    const yearOffset = i;
+                    const futureDate = new Date(withdrawalDate);
+                    futureDate.setFullYear(withdrawalDate.getFullYear() + yearOffset);
+                    
+                    allGeneratedTransactions.push({
+                        id: `minwithdraw-${account.id}-${futureDate.getFullYear()}`,
+                        account_id: account.id,
+                        accountName: account.name,
+                        type: 'Minimum Withdrawal',
+                        xtn_date: futureDate.toISOString().split('T')[0],
+                        amount: -10.00, // Placeholder amount, we'll implement the formula later
+                        isGenerated: true
+                    });
+                }
+            }
+        });
+
+        // 4. Combine all transactions
         const regularTransactionsWithAccounts = regularTransactions?.filter(t => !t.isGenerated)?.map(transaction => ({
             ...transaction,
             accountName: accounts.find(acc => acc.id === transaction.account_id)?.name || "Unknown Account"
@@ -114,7 +152,7 @@ export const useTransactionOperations = ({
         ].sort((a, b) => a.xtn_date.localeCompare(b.xtn_date));
 
         return finalTransactions;
-    }, [transactions, accounts, holdings]);
+    }, [transactions, accounts, holdings, futurePayments]);
 
     const filterTransactions = useCallback((transactions, criteria) => {
         if (!transactions) return [];
@@ -234,11 +272,6 @@ export const useTransactionOperations = ({
             return;
         }
 
-        console.log("Initial data available for transaction generation:", {
-            accountsCount: accounts.length,
-            holdingsCount: holdings.length
-        });
-
         hasInitializedRef.current = true;
         fetchTransactions();
     }, [accounts, holdings, fetchTransactions]);
@@ -252,11 +285,17 @@ export const useTransactionOperations = ({
 
         const holdingsChanged = JSON.stringify(holdings) !== JSON.stringify(previousHoldingsRef.current);
         if (holdingsChanged) {
-            console.log("Holdings updated, regenerating transactions");
             previousHoldingsRef.current = holdings;
             fetchTransactions();
         }
     }, [holdings, fetchTransactions]);
+
+    // Add an effect to handle futurePayments changes
+    useEffect(() => {
+        if (hasInitializedRef.current) {
+            fetchTransactions();
+        }
+    }, [futurePayments]);
 
     return {
         editingTransaction,

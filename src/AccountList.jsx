@@ -79,7 +79,21 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
     },
     { field: "type", headerName: "Type", flex: 1, minWidth: 75 },
     { field: "birthdate", headerName: "Birthdate", flex: 1, minWidth: 100 },
-    { field: "min_withdrawal_date", headerName: "Min Withdrawal Date", flex: 1, minWidth: 100 },
+    { 
+      field: "min_withdrawal_date", 
+      headerName: "Min Withdrawal Date", 
+      flex: 1, 
+      minWidth: 100,
+      renderCell: (params) => {
+          const date = params.value; // Get the full date from the account
+          if (date) {
+              const month = new Date(date).toLocaleString('default', { month: 'short' }); // Get the month in short format
+              const day = new Date(date).getDate(); // Get the day
+              return `${month}-${day < 10 ? '0' + day : day}`; // Format as MON-DD
+          }
+          return ''; // Return empty if no date
+      }
+    },
     { field: "starting_balance", headerName: "Starting Balance", flex: 1, type: "number", minWidth: 100 },
     { 
       field: "currentBalance", 

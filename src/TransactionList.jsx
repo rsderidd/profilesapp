@@ -99,13 +99,18 @@ const TransactionList = ({ transactions, deleteTransaction, setEditingTransactio
       flex: 1, 
       type: "number", 
       minWidth: 100,
-      valueFormatter: (params) => {
-        const amount = typeof params === 'string' ? parseFloat(params) : params;
-        if (amount == null || isNaN(amount)) return '';
-        return amount.toLocaleString('en-US', {
-          style: 'currency',
-          currency: 'USD'
-        });
+      renderCell: (params) => {
+        const amount = typeof params.value === 'string' ? parseFloat(params.value) : params.value;
+        const isNegative = amount < 0;
+
+        return (
+          <span style={{ fontWeight: isNegative ? 'bold' : 'normal', color: isNegative ? 'red' : 'inherit' }}>
+            {amount != null && !isNaN(amount) ? amount.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD'
+            }) : ''}
+          </span>
+        );
       }
     },
     {
