@@ -104,13 +104,16 @@ export const useTransactionOperations = ({
 
         // 3. Generate future minimum withdrawals
         accounts?.forEach(account => {
-            if (account.min_withdrawal_date) {
+            if (account.min_withdrawal_date && account.type === 'RRIF') {  // Only for RRIF accounts
                 const today = new Date();
                 const currentYear = today.getFullYear();
                 
-                // The date is stored as YYYY-MM-DD in database
+                // Calculate account holder's age at start of each year
+                const birthDate = new Date(account.birthdate);
+                
+                // Get month/day for withdrawal
                 const dbDate = new Date(account.min_withdrawal_date);
-                const month = dbDate.getMonth(); // getMonth() returns 0-11
+                const month = dbDate.getMonth();
                 const day = dbDate.getDate();
                 
                 // Calculate first withdrawal date for this year
@@ -127,13 +130,42 @@ export const useTransactionOperations = ({
                     const futureDate = new Date(withdrawalDate);
                     futureDate.setFullYear(withdrawalDate.getFullYear() + yearOffset);
                     
+                    // Calculate age at start of withdrawal year
+                    const ageAtWithdrawal = futureDate.getFullYear() - birthDate.getFullYear();
+                    
+                    // Calculate account value at start of year (cash + holdings)
+                    const startOfYear = new Date(futureDate.getFullYear(), 0, 1).toISOString().split('T')[0];
+
+                    // Get cash value (running total of transactions)
+                    const cashValue = allGeneratedTransactions
+                        .filter(t => t.account_id === account.id && t.xtn_date < startOfYear)
+                        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+                    // Get holdings value
+                    const holdingsValue = holdings
+                        .filter(h => h.account_id === account.id)
+                        .reduce((sum, holding) => sum + getHoldingValueAtDate(holding, startOfYear), 0);
+
+                    const accountValue = cashValue + holdingsValue;
+
+                    const factor = getPrescribedFactor(ageAtWithdrawal);
+                    const minWithdrawalAmount = accountValue * factor;
+                    
+                    console.log('Calculating minimum withdrawal for', futureDate.toISOString());
+                    console.log('Cash value:', cashValue);
+                    console.log('Holdings value:', holdingsValue);
+                    console.log('Total account value:', accountValue);
+                    console.log('Age at withdrawal:', ageAtWithdrawal);
+                    console.log('Factor:', factor);
+                    console.log('Minimum withdrawal amount:', minWithdrawalAmount);
+
                     allGeneratedTransactions.push({
                         id: `minwithdraw-${account.id}-${futureDate.getFullYear()}`,
                         account_id: account.id,
                         accountName: account.name,
                         type: 'Minimum Withdrawal',
                         xtn_date: futureDate.toISOString().split('T')[0],
-                        amount: -10.00, // Placeholder amount, we'll implement the formula later
+                        amount: -Math.abs(minWithdrawalAmount), // Ensure it's negative (money going out)
                         isGenerated: true
                     });
                 }
@@ -307,4 +339,60 @@ export const useTransactionOperations = ({
         deleteTransaction,
         updateTransaction
     };
+};
+
+// Helper function to calculate prescribed factor based on age
+const getPrescribedFactor = (age) => {
+    // As per CRA rules, factor is 1/(90-age) for most cases
+    if (age < 71) return 1/(90-age);
+    
+    // For specific ages, CRA has set factors
+    const factors = {
+        71: 0.0528,
+        72: 0.0540,
+        73: 0.0553,
+        74: 0.0567,
+        75: 0.0582,
+        76: 0.0598,
+        77: 0.0617,
+        78: 0.0636,
+        79: 0.0658,
+        80: 0.0682,
+        81: 0.0708,
+        82: 0.0738,
+        83: 0.0771,
+        84: 0.0808,
+        85: 0.0851,
+        86: 0.0899,
+        87: 0.0955,
+        88: 0.1021,
+        89: 0.1099,
+        90: 0.1192,
+        91: 0.1306,
+        92: 0.1449,
+        93: 0.1634,
+        94: 0.1879,
+        95: 0.2000
+    };
+    return factors[age] || 0.20; // 20% for age 95 and over
+};
+
+// Helper function to calculate holding value at a specific date
+const getHoldingValueAtDate = (holding, date) => {
+    const purchaseDate = new Date(holding.purchase_date);
+    const maturityDate = new Date(holding.maturity_date);
+    const targetDate = new Date(date);
+    
+    // If before purchase date, holding wasn't owned yet
+    if (targetDate < purchaseDate) return 0;
+    
+    // If after or at maturity, use maturity value
+    if (targetDate >= maturityDate) return parseFloat(holding.amount_at_maturity);
+    
+    // Calculate partial value based on time progression
+    const totalGain = parseFloat(holding.amount_at_maturity) - parseFloat(holding.amount_paid);
+    const totalDays = (maturityDate - purchaseDate) / (1000 * 60 * 60 * 24);
+    const daysHeld = (targetDate - purchaseDate) / (1000 * 60 * 60 * 24);
+    
+    return parseFloat(holding.amount_paid) + (totalGain * (daysHeld / totalDays));
 };

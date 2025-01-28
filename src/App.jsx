@@ -498,7 +498,7 @@ export default function App() {
                 handleViewTransactions(selectedTransactionAccountId, selectedTransactionAccountName);
               }}
             >
-              <option key="all" value="all">All Transactions</option>
+              <option key="all" value="all">All Accounts</option>
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.name}
