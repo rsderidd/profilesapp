@@ -2,6 +2,7 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button } from "@aws-amplify/ui-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { FaExclamationTriangle } from 'react-icons/fa';
 
 
 const TransactionList = ({ transactions, deleteTransaction, setEditingTransaction, tabColor, allTransactions }) => {
@@ -98,18 +99,39 @@ const TransactionList = ({ transactions, deleteTransaction, setEditingTransactio
       headerName: "Running Total", 
       flex: 1, 
       type: "number", 
-      minWidth: 100,
+      minWidth: 120,
       renderCell: (params) => {
         const amount = typeof params.value === 'string' ? parseFloat(params.value) : params.value;
         const isNegative = amount < 0;
 
         return (
-          <span style={{ fontWeight: isNegative ? 'bold' : 'normal', color: isNegative ? 'red' : 'inherit' }}>
-            {amount != null && !isNaN(amount) ? amount.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD'
-            }) : ''}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {isNegative && (
+              <div style={{ 
+                width: '20px',  // Set explicit width
+                height: '20px', // Set explicit height
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '0.5rem'
+              }}>
+                <FaExclamationTriangle 
+                  style={{ 
+                    color: 'red',
+                    width: '100%',  // Fill the container
+                    height: '100%'
+                  }} 
+                  title="Account balance is negative!" 
+                />
+              </div>
+            )}
+            <span style={{ fontWeight: isNegative ? 'bold' : 'normal', color: isNegative ? 'red' : 'inherit' }}>
+              {amount != null && !isNaN(amount) ? amount.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+              }) : ''}
+            </span>
+          </div>
         );
       }
     },
