@@ -596,12 +596,12 @@ export default function App() {
     
       <div id="About" className={`tabcontent ${activeTab === 'About' ? 'active' : ''}`}>
         <h3>About</h3>
-        <p>Alerts for: 
+        <p>Alerts for: </p>
           <ul>
           <li>TSFA account over 100k </li>
           <li>Holdings over 100k, totalled across all RRIF accounts, same Holding name</li>
           </ul>
-        </p>
+        
       </div>
 
       <Button onClick={signOut}>Sign Out</Button>

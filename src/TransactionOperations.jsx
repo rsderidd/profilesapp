@@ -151,13 +151,13 @@ export const useTransactionOperations = ({
                     const factor = getPrescribedFactor(ageAtWithdrawal);
                     const minWithdrawalAmount = accountValue * factor;
                     
-                    console.log('Calculating minimum withdrawal for', futureDate.toISOString());
+                    /* console.log('Calculating minimum withdrawal for', futureDate.toISOString());
                     console.log('Cash value:', cashValue);
                     console.log('Holdings value:', holdingsValue);
                     console.log('Total account value:', accountValue);
                     console.log('Age at withdrawal:', ageAtWithdrawal);
                     console.log('Factor:', factor);
-                    console.log('Minimum withdrawal amount:', minWithdrawalAmount);
+                    console.log('Minimum withdrawal amount:', minWithdrawalAmount);*/
 
                     allGeneratedTransactions.push({
                         id: `minwithdraw-${account.id}-${futureDate.getFullYear()}`,

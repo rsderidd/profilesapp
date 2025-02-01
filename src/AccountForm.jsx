@@ -141,6 +141,7 @@ const AccountForm = ({
         <option value="RRSP">RRSP</option>
         <option value="RRIF">RRIF</option>
         <option value="TFSA">TFSA</option>
+        <option value="INVEST">INVEST</option>
       </SelectField>
 
       <TextField
