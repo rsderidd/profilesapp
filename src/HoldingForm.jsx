@@ -50,9 +50,12 @@ const HoldingForm = ({
     }
     }, [editingHolding]);
 
-    const handleAddHolding= () => {
+    const handleAddHolding = () => {
         addHolding(newHolding);
+        // Keep the account_id when resetting the form
+        const currentAccountId = newHolding.account_id;
         setNewHolding({
+            account_id: currentAccountId,  // Preserve the account_id
             name: "",
             purchase_date: "",
             amount_paid: "",
@@ -60,9 +63,9 @@ const HoldingForm = ({
             rate: "",
             amount_at_maturity: "",
         });
-      };
+    };
 
-      const handleUpdateHolding = () => {
+    const handleUpdateHolding = () => {
         updateHolding(newHolding);
         setEditingHolding(null); // Clear the editing state
         setNewHolding({
@@ -72,9 +75,10 @@ const HoldingForm = ({
             maturity_date: "",
             rate: "",
             amount_at_maturity: "",
-        });      };
+        });     
+    };
 
-      const handleDateChange = (field, value) => {
+    const handleDateChange = (field, value) => {
         let formattedValue = value.replace(/[^0-9-]/g, '');
     
         // Remove extra dashes
@@ -94,9 +98,9 @@ const HoldingForm = ({
         }
     
         setNewHolding((prev) => ({ ...prev, [field]: formattedValue }));
-      };
+    };
 
-      const handleInputChange = (e) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
         const updatedHolding = {
             ...newHolding,
@@ -125,7 +129,7 @@ const HoldingForm = ({
         return P * Math.pow((1 + r), n);
     };
 
-      const handleCancel = () => {
+    const handleCancel = () => {
         setEditing(false)
         setEditingHolding(null); // Clear the editing state
         setNewHolding({
@@ -136,10 +140,9 @@ const HoldingForm = ({
             rate: "",
             amount_at_maturity: "",
         });
-      }
-      
-      return (
-
+    }
+    
+    return (
         <Flex key="edthld" direction="column" gap="1rem">
             <Heading level={3}>
               {editingHolding ? "Edit Holding" : "Add New Holding"}
@@ -230,8 +233,7 @@ const HoldingForm = ({
                 handleCancel()}>Cancel</Button>
             )}
           </Flex>
-
-)   ;
+    );
 };
 
 export default HoldingForm;
