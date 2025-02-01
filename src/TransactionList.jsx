@@ -99,7 +99,7 @@ const TransactionList = ({ transactions, deleteTransaction, setEditingTransactio
       headerName: "Running Total", 
       flex: 1, 
       type: "number", 
-      minWidth: 120,
+      minWidth: 130,
       renderCell: (params) => {
         const amount = typeof params.value === 'string' ? parseFloat(params.value) : params.value;
         const isNegative = amount < 0;

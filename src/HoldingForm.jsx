@@ -18,7 +18,7 @@ const HoldingForm = ({
         maturity_date: "",
         rate: "",
         amount_at_maturity: "",
-      });
+    });
 
     const [editing, setEditing] = useState(false);
     
@@ -34,7 +34,7 @@ const HoldingForm = ({
             amount_paid: parseFloat(editingHolding.amount_paid),
             maturity_date: editingHolding.maturity_date,
             rate: parseFloat(editingHolding.rate),
-            amount_at_maturity: parseFloat(editingHolding.amount_at_maturity),  
+            amount_at_maturity: parseFloat(editingHolding.amount_at_maturity),
         });
     } else {
         setEditing(false);
@@ -66,13 +66,13 @@ const HoldingForm = ({
         updateHolding(newHolding);
         setEditingHolding(null); // Clear the editing state
         setNewHolding({
-          name: "",
-          purchase_date: "",
-          amount_paid: "",
-          maturity_date: "",
-          rate: "",
-          amount_at_maturity: "",
-      });      };
+            name: "",
+            purchase_date: "",
+            amount_paid: "",
+            maturity_date: "",
+            rate: "",
+            amount_at_maturity: "",
+        });      };
 
       const handleDateChange = (field, value) => {
         let formattedValue = value.replace(/[^0-9-]/g, '');
@@ -95,6 +95,35 @@ const HoldingForm = ({
     
         setNewHolding((prev) => ({ ...prev, [field]: formattedValue }));
       };
+
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        const updatedHolding = {
+            ...newHolding,
+            [name]: value
+        };
+        
+        // Calculate maturity amount if purchase amount, rate, and maturity date are filled
+        if (name === 'amount_paid' || name === 'rate' || name === 'maturity_date') {
+            const maturityAmount = calculateMaturityAmount(
+                updatedHolding.amount_paid,  // Use updated values
+                updatedHolding.rate,         // Use updated values
+                updatedHolding.purchase_date,
+                updatedHolding.maturity_date
+            );
+            updatedHolding.amount_at_maturity = maturityAmount.toFixed(2);
+        }
+        
+        setNewHolding(updatedHolding);
+    };
+
+    const calculateMaturityAmount = (purchaseAmount, interestRate, purchaseDate, maturityDate) => {
+        if (!purchaseAmount || !interestRate || !purchaseDate || !maturityDate) return 0;
+        const P = parseFloat(purchaseAmount);
+        const r = parseFloat(interestRate) / 100; // Convert percentage to decimal
+        const n = new Date(maturityDate).getFullYear() - new Date(purchaseDate).getFullYear(); // Calculate years
+        return P * Math.pow((1 + r), n);
+    };
 
       const handleCancel = () => {
         setEditing(false)
@@ -164,10 +193,9 @@ const HoldingForm = ({
             <TextField
               label="Amount Paid"
               type="number"
+              name="amount_paid"
               value={newHolding.amount_paid}
-              onChange={(e) =>
-                setNewHolding({...newHolding,amount_paid: parseFloat(e.target.value),})
-              }
+              onChange={handleInputChange}
             />
             <TextField
               label="Maturity Date (yyyy-mm-dd)"
@@ -179,17 +207,17 @@ const HoldingForm = ({
             <TextField
               label="Rate"
               type="number"
+              name="rate"
               value={newHolding.rate}
-              onChange={(e) => 
-                setNewHolding({...newHolding,rate: parseFloat(e.target.value),})
-              }
+              onChange={handleInputChange}
             />
             <TextField
               label="Amount at Maturity"
               type="number"
+              name="amount_at_maturity"
               value={newHolding.amount_at_maturity}
               onChange={(e) => 
-                setNewHolding({...newHolding,amount_at_maturity: parseFloat(e.target.value),})
+                setNewHolding({...newHolding, amount_at_maturity: parseFloat(e.target.value),})
               }
             />
             <Button onClick={editingHolding ? 
