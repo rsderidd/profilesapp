@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button } from "@aws-amplify/ui-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useMemo } from "react";
+import { FaExclamationTriangle } from 'react-icons/fa';
 
-
-const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHoldings, handleViewTransactions, tabColor, transactions = [] }) => {
+const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHoldings, handleViewTransactions, tabColor, transactions = [], holdings = [] }) => {
   // Calculate current balance for each account
   const balances = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];  // Get today's date in YYYY-MM-DD format
@@ -16,13 +15,33 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
         const amount = typeof transaction.amount === 'string' 
           ? parseFloat(transaction.amount) 
           : transaction.amount;
-
         if (!isNaN(amount)) {
           acc[transaction.account_id] = (acc[transaction.account_id] || 0) + amount;
         }
         return acc;
       }, {});
   }, [transactions]);
+
+  // Calculate RRIF holding totals by name
+  const rrifHoldingTotals = useMemo(() => {
+    const totals = {};
+    holdings.forEach(holding => {
+      const account = accounts.find(acc => acc.id === holding.account_id);
+      if (account?.type === 'RRIF' && holding.name) {
+        totals[holding.name] = (totals[holding.name] || 0) + parseFloat(holding.amount_paid || 0);
+      }
+    });
+    return totals;
+  }, [holdings, accounts]);
+
+  // Check if account has holdings that exceed RRIF limits
+  const hasExcessiveHoldings = useCallback((accountId) => {
+    const accountHoldings = holdings.filter(h => h.account_id === accountId);
+    return accountHoldings.some(holding => {
+      const totalForHolding = rrifHoldingTotals[holding.name] || 0;
+      return totalForHolding > 100000;
+    });
+  }, [holdings, rrifHoldingTotals]);
 
   // Define your custom theme
   const theme = createTheme({
@@ -64,18 +83,46 @@ const AccountList = ({ accounts, deleteAccount, setEditingAccount, handleViewHol
       headerName: "Name", 
       flex: 1, 
       minWidth: 150,
-      renderCell: (params) => (
-        <div
-          style={{ 
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            color: 'blue'
-          }}
-          onClick={() => handleViewTransactions(params.row.id, params.row.name)}
-        >
-          {params.value}
-        </div>
-      )
+      renderCell: (params) => {
+        const balance = balances[params.row.id] || 0;
+        const isTFSAOverLimit = params.row.type === 'TFSA' && balance > 100000;
+        const hasRRIFWarning = hasExcessiveHoldings(params.row.id);
+        
+        return (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {(isTFSAOverLimit || hasRRIFWarning) && (
+              <div style={{ 
+                width: '20px',
+                height: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '0.5rem'
+              }}>
+                <FaExclamationTriangle 
+                  style={{ 
+                    color: 'red',
+                    width: '100%',
+                    height: '100%'
+                  }} 
+                  title={isTFSAOverLimit 
+                    ? `TFSA balance exceeds $100,000 (Current: ${balance.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})`
+                    : `Account has holdings that exceed RRIF limits`} 
+                />
+              </div>
+            )}
+            <span style={{ 
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              color: isTFSAOverLimit ? 'red' : 'blue',
+              fontWeight: isTFSAOverLimit ? 'bold' : 'normal'
+            }}
+            onClick={() => handleViewTransactions(params.row.id, params.row.name)}>
+              {params.value}
+            </span>
+          </div>
+        );
+      }
     },
     { field: "type", headerName: "Type", flex: 1, minWidth: 75 },
     { field: "birthdate", headerName: "Birthdate", flex: 1, minWidth: 100 },

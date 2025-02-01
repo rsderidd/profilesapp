@@ -2,15 +2,32 @@ import { useState } from "react";
 import { createHoldings, deleteHoldings, updateHoldings,  } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listHoldings, } from "../amplify/auth/post-confirmation/graphql/queries"; 
 
-export const useHoldingOperations = ({ holdings, setHoldings, client, setSelectedAccount, selectedAccount, handleViewHoldings }) => {
+export const useHoldingOperations = ({ 
+    holdings, 
+    setHoldings, 
+    client, 
+    setSelectedAccount, 
+    selectedAccount, 
+    handleViewHoldings,
+    accounts  // Add this parameter
+}) => {
     const [editingHolding, setEditingHolding] = useState(null);
     const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
   
     const fetchHoldings = async () => { 
         try {
-          const {data} = await  client.models.Holdings.list(); // Amplify.API.graphql({ query: listHoldings });
-          setSelectedAccount(null)
-          setHoldings(data);
+          const {data} = await client.models.Holdings.list();
+          setSelectedAccount(null);
+          // Add account type to each holding
+          const holdingsWithAccountType = data.map(holding => {
+            const account = accounts.find(acc => acc.id === holding.account_id);
+            return {
+              ...holding,
+              accountType: account?.type || 'Unknown',
+              accountName: account?.name || 'Unknown Account'
+            };
+          });
+          setHoldings(holdingsWithAccountType);
         } catch (err) {
           console.error("Error fetching holdings:", err);
         }

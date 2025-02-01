@@ -131,7 +131,8 @@ export default function App() {
     client,
     setSelectedAccount, 
     selectedAccount,
-    handleViewHoldings
+    handleViewHoldings,
+    accounts
   });
 
     // ***********************************************************
@@ -419,6 +420,7 @@ export default function App() {
               handleViewTransactions={handleViewTransactions}
               tabColor={tabColor}
               transactions={allTransactions}
+              holdings={holdings}
             />
             <AccountForm 
               editingAccount={editingAccount} 
@@ -594,7 +596,12 @@ export default function App() {
     
       <div id="About" className={`tabcontent ${activeTab === 'About' ? 'active' : ''}`}>
         <h3>About</h3>
-        <p>Who we are and what we do.</p>
+        <p>Alerts for: 
+          <ul>
+          <li>TSFA account over 100k </li>
+          <li>Holdings over 100k, totalled across all RRIF accounts, same Holding name</li>
+          </ul>
+        </p>
       </div>
 
       <Button onClick={signOut}>Sign Out</Button>
