@@ -378,7 +378,7 @@ export default function App() {
           className="box"
         >
           <View>
-            <Heading level="3">{userprofile.email} {userprofile.profileOwner}</Heading>
+            <Heading level="3">{userprofile.email} </Heading>
           </View>
         </Flex>
       ))}
