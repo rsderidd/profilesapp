@@ -16,7 +16,8 @@ export const useTransactionOperations = ({
     dateFrom,
     dateTo,
     futurePayments,
-    holdings
+    holdings, 
+    userId
 }) => { 
     const [editingTransaction, setEditingTransaction] = useState(null);
     const [isUpdatingTransaction, setIsUpdatingTransaction] = useState(false);
@@ -217,7 +218,9 @@ export const useTransactionOperations = ({
 
     const fetchTransactions = useCallback(async () => {
         try {
-            const transactionsData = await client.models.Transactions.list();
+            const transactionsData = await client.models.Transactions.list({
+                filter: { owner: { eq: userId } }
+            });
             const regularTransactions = transactionsData.data || [];
             
             const updatedTransactions = generateAllTransactions(regularTransactions);

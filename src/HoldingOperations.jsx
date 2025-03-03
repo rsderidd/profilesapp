@@ -10,13 +10,16 @@ export const useHoldingOperations = ({
     selectedAccount, 
     handleViewHoldings,
     accounts  // Add this parameter
+    , userId
 }) => {
     const [editingHolding, setEditingHolding] = useState(null);
     const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
   
     const fetchHoldings = async () => { 
         try {
-          const {data} = await client.models.Holdings.list();
+          const {data} = await client.models.Holdings.list({       
+            filter: { owner: { eq: userId } } // Use user ID for filtering
+          });
           setSelectedAccount(null);
           // Add account type to each holding
           const holdingsWithAccountType = data.map(holding => {

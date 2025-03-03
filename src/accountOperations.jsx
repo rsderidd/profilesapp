@@ -4,19 +4,23 @@ import { useState } from "react";
 import { createAccounts, deleteAccounts, updateAccounts, } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listAccounts, } from "../amplify/auth/post-confirmation/graphql/queries"; 
 
-export const useAccountOperations = ({ accounts, setAccounts,  client,  }) => {
+export const useAccountOperations = ({ accounts, setAccounts, client, userId }) => {
     const [editingAccount, setEditingAccount] = useState(null);
     const [isUpdating, setIsUpdating] = useState(false);
   
   // Fetch accounts
   const fetchAccounts = async () => {
     try {
-      const { data } = await client.models.Accounts.list();
-      setAccounts(data);
-      return data;
+        // console.log("Fetching accounts for user:", userId); // Log the userId
+        const { data } = await client.models.Accounts.list({
+            filter: { owner: { eq: userId } }
+        });
+        // console.log("Fetched accounts:", data); // Log the fetched data
+        setAccounts(data);
+        return data;
     } catch (err) {
-      console.error("Error fetching accounts:", err);
-      return [];
+        console.error("Error fetching accounts:", err);
+        return [];
     }
   };
 
@@ -27,6 +31,7 @@ export const useAccountOperations = ({ accounts, setAccounts,  client,  }) => {
       const createdAccount = await client.models.Accounts.create({
         ...addedAccount,
         starting_balance: parseFloat(addedAccount.starting_balance),
+        owner: userId // Set the owner to the current user's ID
       });
       const caccount = createdAccount.data || createdAccount
 

@@ -35,7 +35,7 @@ const client = generateClient({
 export default function App() {
   const [userprofiles, setUserProfiles] = useState([]);
   const [activeTab, setActiveTab] = useState("Home");
-  const { signOut } = useAuthenticator((context) => [context.user]);
+  const { user, signOut } = useAuthenticator();
   const [tabColor, setTabColor] = useState();
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -46,9 +46,17 @@ export default function App() {
   const [isDateFilterApplied, setIsDateFilterApplied] = useState(false);
   const [futurePayments, setFuturePayments] = useState(1); // Default to 1
 
+  // Format the owner ID once
+  const ownerId = user?.userId ? `${user.userId}::${user.userId}` : null;
+
   useEffect(() => {
     fetchUserProfile();
   }, []);
+
+  useEffect(() => {
+    console.log("Current user:", user);
+    console.log("Owner ID:", ownerId);  // Updated to log the formatted owner ID
+  }, [user, ownerId]);
 
   async function fetchUserProfile() {
     const { data: profiles } = await client.models.UserProfile.list();
@@ -132,7 +140,9 @@ export default function App() {
     setSelectedAccount, 
     selectedAccount,
     handleViewHoldings,
-    accounts
+    accounts,
+    userId: ownerId,
+ 
   });
 
     // ***********************************************************
@@ -151,6 +161,7 @@ export default function App() {
     accounts,
     setAccounts,
     client,
+    userId: ownerId,
   });
 
   // Map holdings with account names
@@ -312,7 +323,9 @@ export default function App() {
     dateFrom,
     dateTo,
     futurePayments,
-    holdings
+    holdings,
+    userId: ownerId,
+ 
   });
 
   // Destructure deleteTransaction from the hook
@@ -421,6 +434,7 @@ export default function App() {
               tabColor={tabColor}
               transactions={allTransactions}
               holdings={holdings}
+              userId={ownerId}
             />
             <AccountForm 
               editingAccount={editingAccount} 
