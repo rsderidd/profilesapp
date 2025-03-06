@@ -9,7 +9,8 @@ export type Accounts = {
   id: string,
   min_withdrawal_date?: string | null,
   name?: string | null,
-  starting_balance?: number | null,
+  owner?: string | null,
+  starting_balance?: string | null,
   type?: string | null,
   updatedAt: string,
 };
@@ -17,12 +18,13 @@ export type Accounts = {
 export type Holdings = {
   __typename: "Holdings",
   account_id?: string | null,
-  amount_at_maturity?: number | null,
-  amount_paid?: number | null,
+  amount_at_maturity?: string | null,
+  amount_paid?: string | null,
   createdAt: string,
   id: string,
   maturity_date?: string | null,
   name?: string | null,
+  owner?: string | null,
   purchase_date?: string | null,
   rate?: number | null,
   updatedAt: string,
@@ -31,10 +33,11 @@ export type Holdings = {
 export type Transactions = {
   __typename: "Transactions",
   account_id?: string | null,
-  amount?: number | null,
+  amount?: string | null,
   createdAt: string,
   holding_id?: string | null,
   id: string,
+  owner?: string | null,
   type?: string | null,
   updatedAt: string,
   xtn_date?: string | null,
@@ -58,7 +61,8 @@ export type ModelAccountsFilterInput = {
   name?: ModelStringInput | null,
   not?: ModelAccountsFilterInput | null,
   or?: Array< ModelAccountsFilterInput | null > | null,
-  starting_balance?: ModelFloatInput | null,
+  owner?: ModelStringInput | null,
+  starting_balance?: ModelStringInput | null,
   type?: ModelStringInput | null,
   updatedAt?: ModelStringInput | null,
 };
@@ -119,6 +123,29 @@ export type ModelIDInput = {
   size?: ModelSizeInput | null,
 };
 
+export type ModelAccountsConnection = {
+  __typename: "ModelAccountsConnection",
+  items:  Array<Accounts | null >,
+  nextToken?: string | null,
+};
+
+export type ModelHoldingsFilterInput = {
+  account_id?: ModelStringInput | null,
+  amount_at_maturity?: ModelStringInput | null,
+  amount_paid?: ModelStringInput | null,
+  and?: Array< ModelHoldingsFilterInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  id?: ModelIDInput | null,
+  maturity_date?: ModelStringInput | null,
+  name?: ModelStringInput | null,
+  not?: ModelHoldingsFilterInput | null,
+  or?: Array< ModelHoldingsFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  purchase_date?: ModelStringInput | null,
+  rate?: ModelFloatInput | null,
+  updatedAt?: ModelStringInput | null,
+};
+
 export type ModelFloatInput = {
   attributeExists?: boolean | null,
   attributeType?: ModelAttributeTypes | null,
@@ -131,28 +158,6 @@ export type ModelFloatInput = {
   ne?: number | null,
 };
 
-export type ModelAccountsConnection = {
-  __typename: "ModelAccountsConnection",
-  items:  Array<Accounts | null >,
-  nextToken?: string | null,
-};
-
-export type ModelHoldingsFilterInput = {
-  account_id?: ModelStringInput | null,
-  amount_at_maturity?: ModelFloatInput | null,
-  amount_paid?: ModelFloatInput | null,
-  and?: Array< ModelHoldingsFilterInput | null > | null,
-  createdAt?: ModelStringInput | null,
-  id?: ModelIDInput | null,
-  maturity_date?: ModelStringInput | null,
-  name?: ModelStringInput | null,
-  not?: ModelHoldingsFilterInput | null,
-  or?: Array< ModelHoldingsFilterInput | null > | null,
-  purchase_date?: ModelStringInput | null,
-  rate?: ModelFloatInput | null,
-  updatedAt?: ModelStringInput | null,
-};
-
 export type ModelHoldingsConnection = {
   __typename: "ModelHoldingsConnection",
   items:  Array<Holdings | null >,
@@ -161,13 +166,14 @@ export type ModelHoldingsConnection = {
 
 export type ModelTransactionsFilterInput = {
   account_id?: ModelStringInput | null,
-  amount?: ModelFloatInput | null,
+  amount?: ModelStringInput | null,
   and?: Array< ModelTransactionsFilterInput | null > | null,
   createdAt?: ModelStringInput | null,
   holding_id?: ModelStringInput | null,
   id?: ModelIDInput | null,
   not?: ModelTransactionsFilterInput | null,
   or?: Array< ModelTransactionsFilterInput | null > | null,
+  owner?: ModelStringInput | null,
   type?: ModelStringInput | null,
   updatedAt?: ModelStringInput | null,
   xtn_date?: ModelStringInput | null,
@@ -204,7 +210,8 @@ export type ModelAccountsConditionInput = {
   name?: ModelStringInput | null,
   not?: ModelAccountsConditionInput | null,
   or?: Array< ModelAccountsConditionInput | null > | null,
-  starting_balance?: ModelFloatInput | null,
+  owner?: ModelStringInput | null,
+  starting_balance?: ModelStringInput | null,
   type?: ModelStringInput | null,
   updatedAt?: ModelStringInput | null,
 };
@@ -214,20 +221,22 @@ export type CreateAccountsInput = {
   id?: string | null,
   min_withdrawal_date?: string | null,
   name?: string | null,
-  starting_balance?: number | null,
+  owner?: string | null,
+  starting_balance?: string | null,
   type?: string | null,
 };
 
 export type ModelHoldingsConditionInput = {
   account_id?: ModelStringInput | null,
-  amount_at_maturity?: ModelFloatInput | null,
-  amount_paid?: ModelFloatInput | null,
+  amount_at_maturity?: ModelStringInput | null,
+  amount_paid?: ModelStringInput | null,
   and?: Array< ModelHoldingsConditionInput | null > | null,
   createdAt?: ModelStringInput | null,
   maturity_date?: ModelStringInput | null,
   name?: ModelStringInput | null,
   not?: ModelHoldingsConditionInput | null,
   or?: Array< ModelHoldingsConditionInput | null > | null,
+  owner?: ModelStringInput | null,
   purchase_date?: ModelStringInput | null,
   rate?: ModelFloatInput | null,
   updatedAt?: ModelStringInput | null,
@@ -235,23 +244,25 @@ export type ModelHoldingsConditionInput = {
 
 export type CreateHoldingsInput = {
   account_id?: string | null,
-  amount_at_maturity?: number | null,
-  amount_paid?: number | null,
+  amount_at_maturity?: string | null,
+  amount_paid?: string | null,
   id?: string | null,
   maturity_date?: string | null,
   name?: string | null,
+  owner?: string | null,
   purchase_date?: string | null,
   rate?: number | null,
 };
 
 export type ModelTransactionsConditionInput = {
   account_id?: ModelStringInput | null,
-  amount?: ModelFloatInput | null,
+  amount?: ModelStringInput | null,
   and?: Array< ModelTransactionsConditionInput | null > | null,
   createdAt?: ModelStringInput | null,
   holding_id?: ModelStringInput | null,
   not?: ModelTransactionsConditionInput | null,
   or?: Array< ModelTransactionsConditionInput | null > | null,
+  owner?: ModelStringInput | null,
   type?: ModelStringInput | null,
   updatedAt?: ModelStringInput | null,
   xtn_date?: ModelStringInput | null,
@@ -259,9 +270,10 @@ export type ModelTransactionsConditionInput = {
 
 export type CreateTransactionsInput = {
   account_id?: string | null,
-  amount?: number | null,
+  amount?: string | null,
   holding_id?: string | null,
   id?: string | null,
+  owner?: string | null,
   type?: string | null,
   xtn_date?: string | null,
 };
@@ -303,26 +315,29 @@ export type UpdateAccountsInput = {
   id: string,
   min_withdrawal_date?: string | null,
   name?: string | null,
-  starting_balance?: number | null,
+  owner?: string | null,
+  starting_balance?: string | null,
   type?: string | null,
 };
 
 export type UpdateHoldingsInput = {
   account_id?: string | null,
-  amount_at_maturity?: number | null,
-  amount_paid?: number | null,
+  amount_at_maturity?: string | null,
+  amount_paid?: string | null,
   id: string,
   maturity_date?: string | null,
   name?: string | null,
+  owner?: string | null,
   purchase_date?: string | null,
   rate?: number | null,
 };
 
 export type UpdateTransactionsInput = {
   account_id?: string | null,
-  amount?: number | null,
+  amount?: string | null,
   holding_id?: string | null,
   id: string,
+  owner?: string | null,
   type?: string | null,
   xtn_date?: string | null,
 };
@@ -341,7 +356,8 @@ export type ModelSubscriptionAccountsFilterInput = {
   min_withdrawal_date?: ModelSubscriptionStringInput | null,
   name?: ModelSubscriptionStringInput | null,
   or?: Array< ModelSubscriptionAccountsFilterInput | null > | null,
-  starting_balance?: ModelSubscriptionFloatInput | null,
+  owner?: ModelStringInput | null,
+  starting_balance?: ModelSubscriptionStringInput | null,
   type?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
 };
@@ -376,6 +392,22 @@ export type ModelSubscriptionIDInput = {
   notIn?: Array< string | null > | null,
 };
 
+export type ModelSubscriptionHoldingsFilterInput = {
+  account_id?: ModelSubscriptionStringInput | null,
+  amount_at_maturity?: ModelSubscriptionStringInput | null,
+  amount_paid?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionHoldingsFilterInput | null > | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  id?: ModelSubscriptionIDInput | null,
+  maturity_date?: ModelSubscriptionStringInput | null,
+  name?: ModelSubscriptionStringInput | null,
+  or?: Array< ModelSubscriptionHoldingsFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  purchase_date?: ModelSubscriptionStringInput | null,
+  rate?: ModelSubscriptionFloatInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+};
+
 export type ModelSubscriptionFloatInput = {
   between?: Array< number | null > | null,
   eq?: number | null,
@@ -388,29 +420,15 @@ export type ModelSubscriptionFloatInput = {
   notIn?: Array< number | null > | null,
 };
 
-export type ModelSubscriptionHoldingsFilterInput = {
-  account_id?: ModelSubscriptionStringInput | null,
-  amount_at_maturity?: ModelSubscriptionFloatInput | null,
-  amount_paid?: ModelSubscriptionFloatInput | null,
-  and?: Array< ModelSubscriptionHoldingsFilterInput | null > | null,
-  createdAt?: ModelSubscriptionStringInput | null,
-  id?: ModelSubscriptionIDInput | null,
-  maturity_date?: ModelSubscriptionStringInput | null,
-  name?: ModelSubscriptionStringInput | null,
-  or?: Array< ModelSubscriptionHoldingsFilterInput | null > | null,
-  purchase_date?: ModelSubscriptionStringInput | null,
-  rate?: ModelSubscriptionFloatInput | null,
-  updatedAt?: ModelSubscriptionStringInput | null,
-};
-
 export type ModelSubscriptionTransactionsFilterInput = {
   account_id?: ModelSubscriptionStringInput | null,
-  amount?: ModelSubscriptionFloatInput | null,
+  amount?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionTransactionsFilterInput | null > | null,
   createdAt?: ModelSubscriptionStringInput | null,
   holding_id?: ModelSubscriptionStringInput | null,
   id?: ModelSubscriptionIDInput | null,
   or?: Array< ModelSubscriptionTransactionsFilterInput | null > | null,
+  owner?: ModelStringInput | null,
   type?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
   xtn_date?: ModelSubscriptionStringInput | null,
@@ -438,7 +456,8 @@ export type GetAccountsQuery = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -452,12 +471,13 @@ export type GetHoldingsQuery = {
   getHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -472,10 +492,11 @@ export type GetTransactionsQuery = {
   getTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,
@@ -513,7 +534,8 @@ export type ListAccountsQuery = {
       id: string,
       min_withdrawal_date?: string | null,
       name?: string | null,
-      starting_balance?: number | null,
+      owner?: string | null,
+      starting_balance?: string | null,
       type?: string | null,
       updatedAt: string,
     } | null >,
@@ -533,12 +555,13 @@ export type ListHoldingsQuery = {
     items:  Array< {
       __typename: "Holdings",
       account_id?: string | null,
-      amount_at_maturity?: number | null,
-      amount_paid?: number | null,
+      amount_at_maturity?: string | null,
+      amount_paid?: string | null,
       createdAt: string,
       id: string,
       maturity_date?: string | null,
       name?: string | null,
+      owner?: string | null,
       purchase_date?: string | null,
       rate?: number | null,
       updatedAt: string,
@@ -559,10 +582,11 @@ export type ListTransactionsQuery = {
     items:  Array< {
       __typename: "Transactions",
       account_id?: string | null,
-      amount?: number | null,
+      amount?: string | null,
       createdAt: string,
       holding_id?: string | null,
       id: string,
+      owner?: string | null,
       type?: string | null,
       updatedAt: string,
       xtn_date?: string | null,
@@ -605,7 +629,8 @@ export type CreateAccountsMutation = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -620,12 +645,13 @@ export type CreateHoldingsMutation = {
   createHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -641,10 +667,11 @@ export type CreateTransactionsMutation = {
   createTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,
@@ -680,7 +707,8 @@ export type DeleteAccountsMutation = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -695,12 +723,13 @@ export type DeleteHoldingsMutation = {
   deleteHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -716,10 +745,11 @@ export type DeleteTransactionsMutation = {
   deleteTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,
@@ -755,7 +785,8 @@ export type UpdateAccountsMutation = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -770,12 +801,13 @@ export type UpdateHoldingsMutation = {
   updateHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -791,10 +823,11 @@ export type UpdateTransactionsMutation = {
   updateTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,
@@ -819,6 +852,7 @@ export type UpdateUserProfileMutation = {
 
 export type OnCreateAccountsSubscriptionVariables = {
   filter?: ModelSubscriptionAccountsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnCreateAccountsSubscription = {
@@ -829,7 +863,8 @@ export type OnCreateAccountsSubscription = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -837,18 +872,20 @@ export type OnCreateAccountsSubscription = {
 
 export type OnCreateHoldingsSubscriptionVariables = {
   filter?: ModelSubscriptionHoldingsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnCreateHoldingsSubscription = {
   onCreateHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -857,16 +894,18 @@ export type OnCreateHoldingsSubscription = {
 
 export type OnCreateTransactionsSubscriptionVariables = {
   filter?: ModelSubscriptionTransactionsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnCreateTransactionsSubscription = {
   onCreateTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,
@@ -891,6 +930,7 @@ export type OnCreateUserProfileSubscription = {
 
 export type OnDeleteAccountsSubscriptionVariables = {
   filter?: ModelSubscriptionAccountsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnDeleteAccountsSubscription = {
@@ -901,7 +941,8 @@ export type OnDeleteAccountsSubscription = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -909,18 +950,20 @@ export type OnDeleteAccountsSubscription = {
 
 export type OnDeleteHoldingsSubscriptionVariables = {
   filter?: ModelSubscriptionHoldingsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnDeleteHoldingsSubscription = {
   onDeleteHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -929,16 +972,18 @@ export type OnDeleteHoldingsSubscription = {
 
 export type OnDeleteTransactionsSubscriptionVariables = {
   filter?: ModelSubscriptionTransactionsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnDeleteTransactionsSubscription = {
   onDeleteTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,
@@ -963,6 +1008,7 @@ export type OnDeleteUserProfileSubscription = {
 
 export type OnUpdateAccountsSubscriptionVariables = {
   filter?: ModelSubscriptionAccountsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnUpdateAccountsSubscription = {
@@ -973,7 +1019,8 @@ export type OnUpdateAccountsSubscription = {
     id: string,
     min_withdrawal_date?: string | null,
     name?: string | null,
-    starting_balance?: number | null,
+    owner?: string | null,
+    starting_balance?: string | null,
     type?: string | null,
     updatedAt: string,
   } | null,
@@ -981,18 +1028,20 @@ export type OnUpdateAccountsSubscription = {
 
 export type OnUpdateHoldingsSubscriptionVariables = {
   filter?: ModelSubscriptionHoldingsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnUpdateHoldingsSubscription = {
   onUpdateHoldings?:  {
     __typename: "Holdings",
     account_id?: string | null,
-    amount_at_maturity?: number | null,
-    amount_paid?: number | null,
+    amount_at_maturity?: string | null,
+    amount_paid?: string | null,
     createdAt: string,
     id: string,
     maturity_date?: string | null,
     name?: string | null,
+    owner?: string | null,
     purchase_date?: string | null,
     rate?: number | null,
     updatedAt: string,
@@ -1001,16 +1050,18 @@ export type OnUpdateHoldingsSubscription = {
 
 export type OnUpdateTransactionsSubscriptionVariables = {
   filter?: ModelSubscriptionTransactionsFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnUpdateTransactionsSubscription = {
   onUpdateTransactions?:  {
     __typename: "Transactions",
     account_id?: string | null,
-    amount?: number | null,
+    amount?: string | null,
     createdAt: string,
     holding_id?: string | null,
     id: string,
+    owner?: string | null,
     type?: string | null,
     updatedAt: string,
     xtn_date?: string | null,

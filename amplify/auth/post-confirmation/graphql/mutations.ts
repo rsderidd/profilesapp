@@ -18,6 +18,7 @@ export const createAccounts = /* GraphQL */ `mutation CreateAccounts(
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -40,6 +41,7 @@ export const createHoldings = /* GraphQL */ `mutation CreateHoldings(
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -60,6 +62,7 @@ export const createTransactions = /* GraphQL */ `mutation CreateTransactions(
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date
@@ -97,6 +100,7 @@ export const deleteAccounts = /* GraphQL */ `mutation DeleteAccounts(
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -119,6 +123,7 @@ export const deleteHoldings = /* GraphQL */ `mutation DeleteHoldings(
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -139,6 +144,7 @@ export const deleteTransactions = /* GraphQL */ `mutation DeleteTransactions(
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date
@@ -176,6 +182,7 @@ export const updateAccounts = /* GraphQL */ `mutation UpdateAccounts(
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -198,6 +205,7 @@ export const updateHoldings = /* GraphQL */ `mutation UpdateHoldings(
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -218,6 +226,7 @@ export const updateTransactions = /* GraphQL */ `mutation UpdateTransactions(
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date

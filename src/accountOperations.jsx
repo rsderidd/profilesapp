@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { createAccounts, deleteAccounts, updateAccounts, } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listAccounts, } from "../amplify/auth/post-confirmation/graphql/queries"; 
+import { encryptFields, decryptFields } from './utils/encryption';
+
+const ENCRYPTED_FIELDS = ['starting_balance'];
 
 export const useAccountOperations = ({ accounts, setAccounts, client, userId }) => {
     const [editingAccount, setEditingAccount] = useState(null);
@@ -15,9 +18,20 @@ export const useAccountOperations = ({ accounts, setAccounts, client, userId }) 
         const { data } = await client.models.Accounts.list({
             filter: { owner: { eq: userId } }
         });
-        // console.log("Fetched accounts:", data); // Log the fetched data
-        setAccounts(data);
-        return data;
+        
+        // Decrypt the fields and convert numeric values
+        const decryptedAccounts = await Promise.all(
+            data.map(async account => {
+                const decrypted = await decryptFields(account, ENCRYPTED_FIELDS);
+                return {
+                    ...decrypted,
+                    starting_balance: parseFloat(decrypted.starting_balance) // Convert to number for display/calculations
+                };
+            })
+        );
+        
+        setAccounts(decryptedAccounts);
+        return decryptedAccounts;
     } catch (err) {
         console.error("Error fetching accounts:", err);
         return [];
@@ -28,15 +42,18 @@ export const useAccountOperations = ({ accounts, setAccounts, client, userId }) 
   const addAccount = async (addedAccount) => {
     console.log("new account:", addedAccount);   
     try {
-      const createdAccount = await client.models.Accounts.create({
+      // Convert numeric fields to strings for encryption
+      const accountToAdd = {
         ...addedAccount,
-        starting_balance: parseFloat(addedAccount.starting_balance),
-        owner: userId // Set the owner to the current user's ID
-      });
-      const caccount = createdAccount.data || createdAccount
+        starting_balance: addedAccount.starting_balance.toString(),
+        owner: userId
+      };
 
-      setAccounts((prevAccounts) => [...prevAccounts, caccount]);
-      fetchAccounts(); // Refreshes the list after adding
+      // Encrypt sensitive fields
+      const encryptedAccount = await encryptFields(accountToAdd, ENCRYPTED_FIELDS);
+      
+      const createdAccount = await client.models.Accounts.create(encryptedAccount);
+      await fetchAccounts(); // Refresh the list to get decrypted data
     } catch (err) {
       console.error("Error adding account:", err);
     }
@@ -74,43 +91,22 @@ export const useAccountOperations = ({ accounts, setAccounts, client, userId }) 
   const updateAccount = async (updatedAccount) => {
     setIsUpdating(true);
     try {
-
-      // Prepare the updated data for the account
-      const updatedData = {
-        id: updatedAccount.id, // Required for update
-        name: updatedAccount.name,
-        type: updatedAccount.type,
-        birthdate: updatedAccount.birthdate,
-        min_withdrawal_date: updatedAccount.min_withdrawal_date,
-        starting_balance: parseFloat(updatedAccount.starting_balance),
+      // Convert numeric fields to strings for encryption
+      const accountToUpdate = {
+        ...updatedAccount,
+        starting_balance: updatedAccount.starting_balance.toString()
       };
-  
-      console.log("Payload for update:", updatedData);
 
-      // Prepare the condition for the update (if needed)
-      // const condition = {};  // You can add condition logic here if necessary
-  
-      // Perform the update using the API and the updateAccounts mutation
-      // const result = await client.models.Accounts.update(editingAccount.id, updatedData, { condition });
-      // const result = await client.models.Accounts.update(editingAccount.id, updatedData);
-      
-      // const updatedAccount = await API.graphql(graphqlOperation(updateAccounts, { input: updatedData }));
+      // Encrypt sensitive fields
+      const encryptedAccount = await encryptFields(accountToUpdate, ENCRYPTED_FIELDS);
+
       const result = await client.graphql({
         query: updateAccounts,
-        variables: { input: updatedData }
+        variables: { input: encryptedAccount }
       });
 
-  
-      // Update the state to reflect the changes
-      setAccounts((prevAccounts) =>
-        prevAccounts.map((account) =>
-          account.id === result.data.updateAccounts.id
-            ? result.data.updateAccounts
-            : account
-        )
-      );
-  
-     } catch (err) {
+      await fetchAccounts(); // Refresh the list to get decrypted data
+    } catch (err) {
       console.error("Error updating account:", err);
       alert("Failed to update the account. Please try again later.");
     } finally {

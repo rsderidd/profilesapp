@@ -17,33 +17,31 @@ const schema = a
         type: a.string(),
         birthdate: a.string(),
         min_withdrawal_date: a.string(),
-        starting_balance: a.float(),
-        owner: a.string() // Add owner field
-      }).authorization((allow) => [allow.ownerDefinedIn("owner"), allow.authenticated()]), // Update authorization rules
-
-      // }).authorization((allow) => [allow.authenticated()]),
+        starting_balance: a.string(),
+        owner: a.string()
+      }).authorization((allow) => [allow.ownerDefinedIn("owner"), allow.authenticated()]),
     Holdings: a
       .model({
         account_id: a.string(),
         name: a.string(),
         purchase_date: a.string(),
-        amount_paid: a.float(),
+        amount_paid: a.string(),
         maturity_date: a.string(),
         rate: a.float(),
-        amount_at_maturity: a.float(),
-        owner: a.string() // Add owner field
-      }).authorization((allow) => [allow.ownerDefinedIn("owner"), allow.authenticated()]), // Update authorization rules
+        amount_at_maturity: a.string(),
+        owner: a.string()
+      }).authorization((allow) => [allow.ownerDefinedIn("owner"), allow.authenticated()]),
     Transactions: a
       .model({
         account_id: a.string(),
         type: a.string(),
         xtn_date: a.string(),
-        amount: a.float(),
+        amount: a.string(),
         holding_id: a.string(),
-        owner: a.string() // Add owner field
-      }).authorization((allow) => [allow.ownerDefinedIn("owner"), allow.authenticated()]), // Update authorization rules
+        owner: a.string()
+      }).authorization((allow) => [allow.ownerDefinedIn("owner"), allow.authenticated()]),
   }).authorization((allow) => [allow.resource(postConfirmation)]);
-  // .authorization((allow) => [allow.authenticated()]);
+
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({

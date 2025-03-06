@@ -8,13 +8,17 @@ type GeneratedSubscription<InputType, OutputType> = string & {
   __generatedSubscriptionOutput: OutputType;
 };
 
-export const onCreateAccounts = /* GraphQL */ `subscription OnCreateAccounts($filter: ModelSubscriptionAccountsFilterInput) {
-  onCreateAccounts(filter: $filter) {
+export const onCreateAccounts = /* GraphQL */ `subscription OnCreateAccounts(
+  $filter: ModelSubscriptionAccountsFilterInput
+  $owner: String
+) {
+  onCreateAccounts(filter: $filter, owner: $owner) {
     birthdate
     createdAt
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -25,8 +29,11 @@ export const onCreateAccounts = /* GraphQL */ `subscription OnCreateAccounts($fi
   APITypes.OnCreateAccountsSubscriptionVariables,
   APITypes.OnCreateAccountsSubscription
 >;
-export const onCreateHoldings = /* GraphQL */ `subscription OnCreateHoldings($filter: ModelSubscriptionHoldingsFilterInput) {
-  onCreateHoldings(filter: $filter) {
+export const onCreateHoldings = /* GraphQL */ `subscription OnCreateHoldings(
+  $filter: ModelSubscriptionHoldingsFilterInput
+  $owner: String
+) {
+  onCreateHoldings(filter: $filter, owner: $owner) {
     account_id
     amount_at_maturity
     amount_paid
@@ -34,6 +41,7 @@ export const onCreateHoldings = /* GraphQL */ `subscription OnCreateHoldings($fi
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -46,13 +54,15 @@ export const onCreateHoldings = /* GraphQL */ `subscription OnCreateHoldings($fi
 >;
 export const onCreateTransactions = /* GraphQL */ `subscription OnCreateTransactions(
   $filter: ModelSubscriptionTransactionsFilterInput
+  $owner: String
 ) {
-  onCreateTransactions(filter: $filter) {
+  onCreateTransactions(filter: $filter, owner: $owner) {
     account_id
     amount
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date
@@ -80,13 +90,17 @@ export const onCreateUserProfile = /* GraphQL */ `subscription OnCreateUserProfi
   APITypes.OnCreateUserProfileSubscriptionVariables,
   APITypes.OnCreateUserProfileSubscription
 >;
-export const onDeleteAccounts = /* GraphQL */ `subscription OnDeleteAccounts($filter: ModelSubscriptionAccountsFilterInput) {
-  onDeleteAccounts(filter: $filter) {
+export const onDeleteAccounts = /* GraphQL */ `subscription OnDeleteAccounts(
+  $filter: ModelSubscriptionAccountsFilterInput
+  $owner: String
+) {
+  onDeleteAccounts(filter: $filter, owner: $owner) {
     birthdate
     createdAt
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -97,8 +111,11 @@ export const onDeleteAccounts = /* GraphQL */ `subscription OnDeleteAccounts($fi
   APITypes.OnDeleteAccountsSubscriptionVariables,
   APITypes.OnDeleteAccountsSubscription
 >;
-export const onDeleteHoldings = /* GraphQL */ `subscription OnDeleteHoldings($filter: ModelSubscriptionHoldingsFilterInput) {
-  onDeleteHoldings(filter: $filter) {
+export const onDeleteHoldings = /* GraphQL */ `subscription OnDeleteHoldings(
+  $filter: ModelSubscriptionHoldingsFilterInput
+  $owner: String
+) {
+  onDeleteHoldings(filter: $filter, owner: $owner) {
     account_id
     amount_at_maturity
     amount_paid
@@ -106,6 +123,7 @@ export const onDeleteHoldings = /* GraphQL */ `subscription OnDeleteHoldings($fi
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -118,13 +136,15 @@ export const onDeleteHoldings = /* GraphQL */ `subscription OnDeleteHoldings($fi
 >;
 export const onDeleteTransactions = /* GraphQL */ `subscription OnDeleteTransactions(
   $filter: ModelSubscriptionTransactionsFilterInput
+  $owner: String
 ) {
-  onDeleteTransactions(filter: $filter) {
+  onDeleteTransactions(filter: $filter, owner: $owner) {
     account_id
     amount
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date
@@ -152,13 +172,17 @@ export const onDeleteUserProfile = /* GraphQL */ `subscription OnDeleteUserProfi
   APITypes.OnDeleteUserProfileSubscriptionVariables,
   APITypes.OnDeleteUserProfileSubscription
 >;
-export const onUpdateAccounts = /* GraphQL */ `subscription OnUpdateAccounts($filter: ModelSubscriptionAccountsFilterInput) {
-  onUpdateAccounts(filter: $filter) {
+export const onUpdateAccounts = /* GraphQL */ `subscription OnUpdateAccounts(
+  $filter: ModelSubscriptionAccountsFilterInput
+  $owner: String
+) {
+  onUpdateAccounts(filter: $filter, owner: $owner) {
     birthdate
     createdAt
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -169,8 +193,11 @@ export const onUpdateAccounts = /* GraphQL */ `subscription OnUpdateAccounts($fi
   APITypes.OnUpdateAccountsSubscriptionVariables,
   APITypes.OnUpdateAccountsSubscription
 >;
-export const onUpdateHoldings = /* GraphQL */ `subscription OnUpdateHoldings($filter: ModelSubscriptionHoldingsFilterInput) {
-  onUpdateHoldings(filter: $filter) {
+export const onUpdateHoldings = /* GraphQL */ `subscription OnUpdateHoldings(
+  $filter: ModelSubscriptionHoldingsFilterInput
+  $owner: String
+) {
+  onUpdateHoldings(filter: $filter, owner: $owner) {
     account_id
     amount_at_maturity
     amount_paid
@@ -178,6 +205,7 @@ export const onUpdateHoldings = /* GraphQL */ `subscription OnUpdateHoldings($fi
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -190,13 +218,15 @@ export const onUpdateHoldings = /* GraphQL */ `subscription OnUpdateHoldings($fi
 >;
 export const onUpdateTransactions = /* GraphQL */ `subscription OnUpdateTransactions(
   $filter: ModelSubscriptionTransactionsFilterInput
+  $owner: String
 ) {
-  onUpdateTransactions(filter: $filter) {
+  onUpdateTransactions(filter: $filter, owner: $owner) {
     account_id
     amount
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date

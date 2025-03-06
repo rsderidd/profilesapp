@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { createHoldings, deleteHoldings, updateHoldings,  } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listHoldings, } from "../amplify/auth/post-confirmation/graphql/queries"; 
+import { encryptFields, decryptFields } from './utils/encryption';
+
+const ENCRYPTED_FIELDS = ['amount_paid', 'amount_at_maturity'];
 
 export const useHoldingOperations = ({ 
     holdings, 
@@ -15,88 +18,78 @@ export const useHoldingOperations = ({
     const [editingHolding, setEditingHolding] = useState(null);
     const [isUpdatingHolding, setIsUpdatingHolding] = useState(false);
   
-    const fetchHoldings = async () => { 
+    const fetchHoldings = async () => {
         try {
-          const {data} = await client.models.Holdings.list({       
-            filter: { owner: { eq: userId } } // Use user ID for filtering
-          });
-          setSelectedAccount(null);
-          // Add account type to each holding
-          const holdingsWithAccountType = data.map(holding => {
-            const account = accounts.find(acc => acc.id === holding.account_id);
-            return {
-              ...holding,
-              accountType: account?.type || 'Unknown',
-              accountName: account?.name || 'Unknown Account'
-            };
-          });
-          setHoldings(holdingsWithAccountType);
+            const { data } = await client.models.Holdings.list({
+                filter: { owner: { eq: userId } }
+            });
+            
+            // Decrypt the fields and convert numeric values
+            const decryptedHoldings = await Promise.all(
+                data.map(async holding => {
+                    const decrypted = await decryptFields(holding, ENCRYPTED_FIELDS);
+                    return {
+                        ...decrypted,
+                        amount_paid: parseFloat(decrypted.amount_paid),
+                        amount_at_maturity: parseFloat(decrypted.amount_at_maturity)
+                    };
+                })
+            );
+            
+            setHoldings(decryptedHoldings);
+            return decryptedHoldings;
         } catch (err) {
-          console.error("Error fetching holdings:", err);
+            console.error("Error fetching holdings:", err);
+            return [];
         }
     };
   
-    const addHolding = async (addedholding) => { // HOLDINGS: Added
-        console.log("holding to add:", addedholding)
-        if (!addedholding.account_id) {
-        console.error("Select an Account!");
-        return;
-        }
-        
+    const addHolding = async (addedHolding) => {
         try {
-        const createdHolding = await client.models.Holdings.create({
-            account_id: addedholding.account_id,
-            name: addedholding.name,
-            purchase_date: addedholding.purchase_date,
-            amount_paid: parseFloat(addedholding.amount_paid),
-            maturity_date: addedholding.maturity_date,
-            rate: parseFloat(addedholding.rate),
-            amount_at_maturity: parseFloat(addedholding.amount_at_maturity),
-        });
-        const cholding = createdHolding.data || createdHolding
-        setHoldings((prevHoldings) => [...prevHoldings, cholding]);
-        if (selectedAccount) {
-            await handleViewHoldings(selectedAccount.id, selectedAccount.name);
-        } else {
-            fetchHoldings();
-        }
+            // Convert numeric fields to strings for encryption
+            const holdingToAdd = {
+                ...addedHolding,
+                amount_paid: addedHolding.amount_paid.toString(),
+                amount_at_maturity: addedHolding.amount_at_maturity.toString(),
+                owner: userId
+            };
+
+            // Encrypt sensitive fields
+            const encryptedHolding = await encryptFields(holdingToAdd, ENCRYPTED_FIELDS);
+            
+            const createdHolding = await client.models.Holdings.create(encryptedHolding);
+            await fetchHoldings(); // Refresh the list to get decrypted data
         } catch (err) {
-        console.error("Error adding holding:", err);
+            console.error("Error adding holding:", err);
         }
     };
   
     const updateHolding = async (updatedHolding) => {
         setIsUpdatingHolding(true);
         try {
-          const updatedData = {
-            id: updatedHolding.id,
-            account_id: updatedHolding.account_id,
-            name: updatedHolding.name,
-            purchase_date: updatedHolding.purchase_date,
-            amount_paid: parseFloat(updatedHolding.amount_paid),
-            maturity_date: updatedHolding.maturity_date,
-            rate: parseFloat(updatedHolding.rate),
-            amount_at_maturity: parseFloat(updatedHolding.amount_at_maturity),  
-          };
-    
-          const result = await client.graphql({
-            query: updateHoldings,
-            variables: { input: updatedData },
-          });
-    
-          setHoldings((prevHoldings) =>
-            prevHoldings.map((holding) =>
-              holding.id === result.data.updateHoldings.id
-                ? result.data.updateHoldings
-                : holding
-            )
-          );
-          setEditingHolding(null);
+            // Convert numeric fields to strings for encryption
+            const holdingToUpdate = {
+                ...updatedHolding,
+                amount_paid: updatedHolding.amount_paid.toString(),
+                rate: parseFloat(updatedHolding.rate),
+                amount_at_maturity: updatedHolding.amount_at_maturity.toString()
+            };
+
+            // Encrypt sensitive fields
+            const encryptedHolding = await encryptFields(holdingToUpdate, ENCRYPTED_FIELDS);
+
+            const result = await client.graphql({
+                query: updateHoldings,
+                variables: { input: encryptedHolding }
+            });
+
+            setEditingHolding(null);
+            await fetchHoldings(); // Refresh the list to get decrypted data
         } catch (err) {
-          console.error("Error updating holding:", err);
-          alert("Failed to update the holding. Please try again later.");
+            console.error("Error updating holding:", err);
+            alert("Failed to update the holding. Please try again later.");
         } finally {
-          setIsUpdatingHolding(false);
+            setIsUpdatingHolding(false);
         }
     };
 

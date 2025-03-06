@@ -15,6 +15,7 @@ export const getAccounts = /* GraphQL */ `query GetAccounts($id: ID!) {
     id
     min_withdrawal_date
     name
+    owner
     starting_balance
     type
     updatedAt
@@ -34,6 +35,7 @@ export const getHoldings = /* GraphQL */ `query GetHoldings($id: ID!) {
     id
     maturity_date
     name
+    owner
     purchase_date
     rate
     updatedAt
@@ -51,6 +53,7 @@ export const getTransactions = /* GraphQL */ `query GetTransactions($id: ID!) {
     createdAt
     holding_id
     id
+    owner
     type
     updatedAt
     xtn_date
@@ -87,6 +90,7 @@ export const listAccounts = /* GraphQL */ `query ListAccounts(
       id
       min_withdrawal_date
       name
+      owner
       starting_balance
       type
       updatedAt
@@ -114,6 +118,7 @@ export const listHoldings = /* GraphQL */ `query ListHoldings(
       id
       maturity_date
       name
+      owner
       purchase_date
       rate
       updatedAt
@@ -139,6 +144,7 @@ export const listTransactions = /* GraphQL */ `query ListTransactions(
       createdAt
       holding_id
       id
+      owner
       type
       updatedAt
       xtn_date

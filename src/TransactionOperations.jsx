@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { updateTransactions, createTransactions } from "../amplify/auth/post-confirmation/graphql/mutations"; 
 import { listTransactions } from "../amplify/auth/post-confirmation/graphql/queries"; 
+import { encryptFields, decryptFields } from './utils/encryption';
+
+const ENCRYPTED_FIELDS = ['amount'];
 
 export const useTransactionOperations = ({ 
     transactions, 
@@ -218,12 +221,23 @@ export const useTransactionOperations = ({
 
     const fetchTransactions = useCallback(async () => {
         try {
-            const transactionsData = await client.models.Transactions.list({
+            const { data } = await client.models.Transactions.list({
                 filter: { owner: { eq: userId } }
             });
-            const regularTransactions = transactionsData.data || [];
             
-            const updatedTransactions = generateAllTransactions(regularTransactions);
+            // Decrypt the fields for each transaction and convert amount to number
+            const decryptedTransactions = await Promise.all(
+                data.map(async transaction => {
+                    const decrypted = await decryptFields(transaction, ENCRYPTED_FIELDS);
+                    return {
+                        ...decrypted,
+                        amount: parseFloat(decrypted.amount) // Convert decrypted amount to number for display/calculations
+                    };
+                })
+            );
+            
+            // Generate all transactions (including generated ones)
+            const updatedTransactions = generateAllTransactions(decryptedTransactions);
             setAllTransactions(updatedTransactions);
             
             const filterCriteria = {
@@ -249,16 +263,28 @@ export const useTransactionOperations = ({
         }
         
         try {
-            const createdTransaction = await client.models.Transactions.create({
-                account_id: addedtransaction.account_id,
-                type: addedtransaction.type,
-                xtn_date: addedtransaction.xtn_date,
-                amount: parseFloat(addedtransaction.amount),
-            });
-            // Instead of directly updating state, fetch all transactions again
+            // Convert amount to string for encryption
+            const transactionToAdd = {
+                ...addedtransaction,
+                amount: addedtransaction.amount.toString(), // Convert to string before encryption
+                owner: userId
+            };
+            
+            console.log("Preparing to encrypt transaction:", transactionToAdd);
+            
+            // Encrypt sensitive fields before saving
+            const encryptedTransaction = await encryptFields(transactionToAdd, ENCRYPTED_FIELDS);
+            console.log("Encrypted transaction:", encryptedTransaction);
+            
+            // Create the transaction
+            const result = await client.models.Transactions.create(encryptedTransaction);
+            console.log("Transaction created:", result);
+            
+            // Refresh the list to get decrypted data
             await fetchTransactions();
         } catch (err) {
             console.error("Error adding transaction:", err);
+            alert("Failed to add transaction: " + err.message);
         }
     };
     
