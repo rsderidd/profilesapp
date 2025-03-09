@@ -103,6 +103,8 @@ body, html {
   padding: 20px;
   box-sizing: border-box;
   color: black; /* Ensure text is visible */
+  padding-bottom: 80px; /* Add padding to the bottom of the tab content */
+
 }
 
 /* Show the active tab content */

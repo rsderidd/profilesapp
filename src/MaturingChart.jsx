@@ -7,7 +7,7 @@
 
    const MaturingChart = ({ data }) => {
        const chartData = {
-           labels: data.labels, // Array of month labels
+           labels: data.labels, // Array of month-year labels
            datasets: data.datasets.map((accountData) => ({
                label: accountData.accountName,
                data: accountData.amounts, // Array of amounts for each month
@@ -20,6 +20,17 @@
            plugins: {
                legend: {
                    position: 'top',
+                   labels: {
+                       generateLabels: (chart) => {
+                           // Generate distinct labels for the legend
+                           const uniqueLabels = new Set(chart.data.datasets.map(ds => ds.label));
+                           return Array.from(uniqueLabels).map(label => ({
+                               text: label,
+                               fillStyle: chart.data.datasets.find(ds => ds.label === label).backgroundColor,
+                               hidden: false,
+                           }));
+                       },
+                   },
                },
                title: {
                    display: true,

@@ -345,41 +345,115 @@ export default function App() {
   //  ******************* Reports
   // ***********************************************************
 
-  const prepareChartData = (accounts, holdings) => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const labels = []; // Array to hold month labels
-    const datasets = []; // Array to hold datasets for each account
+  // Function to generate a color based on a string (account ID or name)
+  const generateColorFromString = (str) => {
+    const hash = Array.from(str).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hue = hash % 360; // Generate a hue based on the hash
+    return `hsl(${hue}, 70%, 50%)`; // Return a color in HSL format
+  };
 
-    // Generate month labels
-    for (let i = 0; i < 12; i++) {
-        const month = new Date(currentYear, (currentMonth + i) % 12, 1).toLocaleString('default', { month: 'long' });
-        labels.push(month);
+  const prepareChartData = (holdings) => {
+    // Get current date and find the latest maturity date
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Find the latest maturity date from holdings
+    const latestMaturity = holdings.reduce((latest, holding) => {
+        const maturityDate = new Date(holding.maturity_date);
+        return maturityDate > latest ? maturityDate : latest;
+    }, currentDate);
+
+    // Calculate total months needed
+    const monthsDiff = (latestMaturity.getFullYear() - currentYear) * 12 
+        + (latestMaturity.getMonth() - currentMonth) + 1;
+
+    // Generate month-year labels
+    const labels = [];
+    for (let i = 0; i < monthsDiff; i++) {
+        const date = new Date(currentYear, currentMonth + i, 1);
+        labels.push(date.toLocaleString('default', { month: 'short', year: 'numeric' }));
     }
 
-    // Prepare datasets for each account
-    accounts.forEach((account) => {
-        const accountData = {
-            accountName: account.name,
-            amounts: new Array(12).fill(0), // Initialize amounts for each month
-            color: account.color || 'rgba(75, 192, 192, 0.2)', // Default color
-        };
+    // Create a map to accumulate amounts by account
+    const accountDataMap = new Map();
 
-        holdings.forEach((holding) => {
-            const transactionDate = new Date(holding.maturity_date);
-            const monthIndex = transactionDate.getMonth() - currentMonth + 12; // Adjust index based on current month
-            if (monthIndex >= 0 && monthIndex < 12) {
-                accountData.amounts[monthIndex] += parseFloat(holding.amount_at_maturity); // Sum amounts for the month
+    holdings.forEach((holding) => {
+        if (!holding.maturity_date) return;
+
+        const maturityDate = new Date(holding.maturity_date);
+        const monthIndex = (maturityDate.getFullYear() - currentYear) * 12 
+            + (maturityDate.getMonth() - currentMonth);
+
+        if (monthIndex >= 0) {
+            // Get or create account data
+            if (!accountDataMap.has(holding.account_id)) {
+                accountDataMap.set(holding.account_id, {
+                    accountName: holding.accountName,
+                    amounts: new Array(monthsDiff).fill(0),
+                    color: generateColorFromString(holding.account_id)
+                });
             }
-        });
 
-        datasets.push(accountData);
+            // Add amount to the correct month
+            const accountData = accountDataMap.get(holding.account_id);
+            accountData.amounts[monthIndex] += parseFloat(holding.amount_at_maturity || 0);
+        }
     });
+
+    // Convert map to array for chart data
+    const datasets = Array.from(accountDataMap.values());
 
     return { labels, datasets };
   };
 
-  const chartData = prepareChartData(accounts, holdings);
+  const chartData = prepareChartData(modifiedHoldings);
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false, // Allow chart to be resized
+    plugins: {
+        legend: {
+            position: 'top',
+            labels: {
+                generateLabels: (chart) => {
+                    const uniqueLabels = new Set(chart.data.datasets.map(ds => ds.label));
+                    return Array.from(uniqueLabels).map(label => ({
+                        text: label,
+                        fillStyle: chart.data.datasets.find(ds => ds.label === label).backgroundColor,
+                        hidden: false,
+                    }));
+                },
+            },
+        },
+        title: {
+            display: true,
+            text: 'Amounts Maturing by Month',
+        },
+    },
+    scales: {
+        x: {
+            ticks: {
+                autoSkip: true,
+                maxRotation: 45,
+                minRotation: 45
+            }
+        },
+        y: {
+            beginAtZero: true,
+            ticks: {
+                callback: function(value) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                    }).format(value);
+                }
+            }
+        }
+    }
+};
 
   // ***********************************************************
   //  ******************* MAIN LAYOUT
@@ -483,10 +557,11 @@ export default function App() {
               updateAccount={updateAccount} 
               addAccount={addAccount} 
             />
-            <div>
-               <h2>Account Maturing Amounts</h2>
-               <MaturingChart data={chartData} />
-               {/* Other account list content */}
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <div style={{ height: '400px', width: '80%' }}>
+                    <h2>Account Maturing Amounts</h2>
+                    <MaturingChart data={chartData} options={options} />
+                </div>
             </div>
           </Flex>
       </div>
