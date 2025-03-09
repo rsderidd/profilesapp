@@ -23,6 +23,7 @@ import TransactionForm from './TransactionForm';
 import { useAccountOperations } from './accountOperations';
 import { useHoldingOperations } from './HoldingOperations';
 import { useTransactionOperations } from './TransactionOperations';
+import MaturingChart from './MaturingChart';
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
@@ -340,7 +341,46 @@ export default function App() {
     updateTransaction 
   } = transactionOperations;
 
-  
+  // ***********************************************************
+  //  ******************* Reports
+  // ***********************************************************
+
+  const prepareChartData = (accounts, holdings) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const labels = []; // Array to hold month labels
+    const datasets = []; // Array to hold datasets for each account
+
+    // Generate month labels
+    for (let i = 0; i < 12; i++) {
+        const month = new Date(currentYear, (currentMonth + i) % 12, 1).toLocaleString('default', { month: 'long' });
+        labels.push(month);
+    }
+
+    // Prepare datasets for each account
+    accounts.forEach((account) => {
+        const accountData = {
+            accountName: account.name,
+            amounts: new Array(12).fill(0), // Initialize amounts for each month
+            color: account.color || 'rgba(75, 192, 192, 0.2)', // Default color
+        };
+
+        holdings.forEach((holding) => {
+            const transactionDate = new Date(holding.maturity_date);
+            const monthIndex = transactionDate.getMonth() - currentMonth + 12; // Adjust index based on current month
+            if (monthIndex >= 0 && monthIndex < 12) {
+                accountData.amounts[monthIndex] += parseFloat(holding.amount_at_maturity); // Sum amounts for the month
+            }
+        });
+
+        datasets.push(accountData);
+    });
+
+    return { labels, datasets };
+  };
+
+  const chartData = prepareChartData(accounts, holdings);
+
   // ***********************************************************
   //  ******************* MAIN LAYOUT
   // ***********************************************************
@@ -443,6 +483,11 @@ export default function App() {
               updateAccount={updateAccount} 
               addAccount={addAccount} 
             />
+            <div>
+               <h2>Account Maturing Amounts</h2>
+               <MaturingChart data={chartData} />
+               {/* Other account list content */}
+            </div>
           </Flex>
       </div>
     
@@ -612,10 +657,14 @@ export default function App() {
         <h3>About</h3>
         <p>Alerts for: </p>
           <ul>
-          <li>TSFA account over 100k </li>
-          <li>Holdings over 100k, totalled across all RRIF accounts, same Holding name</li>
+            <li>TSFA account over 100k </li>
+            <li>Holdings over 100k, totalled across all RRIF accounts, same Holding name</li>
           </ul>
-        
+        <p>Notes:</p>
+          <ul>
+            <li>Birthdate is for minimum withdrawl calculation</li>
+            <li>Minimum withdrawl is for RRIFs after age 65</li>
+          </ul>
       </div>
 
       <Button onClick={signOut}>Sign Out</Button>
